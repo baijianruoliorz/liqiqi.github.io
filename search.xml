@@ -3,7 +3,7 @@
   <entry>
     <title>MIT6.824 LAB1</title>
     <url>/posts/60658/</url>
-    <content><![CDATA[<h3 id="mit6-824-系列学习"><a href="#mit6-824-系列学习" class="headerlink" title="mit6.824 系列学习"></a>mit6.824 系列学习</h3><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/"  alt="img"></p>
+    <content><![CDATA[<h3 id="mit6-824-系列学习"><a href="#mit6-824-系列学习" class="headerlink" title="mit6.824 系列学习"></a>mit6.824 系列学习</h3><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
 <p>首先贴一下课程官网,方便大家查阅.</p>
 <p><a href="https://pdos.csail.mit.edu/6.824/schedule.html" target="_blank" rel="noopener">mit6.824</a></p>
 <h5 id="lab1实现"><a href="#lab1实现" class="headerlink" title="lab1实现:"></a>lab1实现:</h5><p>首先 在 <a href="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html" target="_blank" rel="noopener">这里</a>看lab1的要求,我们先执行几个官网给出的命令搭建实验环境</p>
@@ -100,6 +100,32 @@
       </tags>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/posts/520520/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>总结</tag>
+        <tag>平淡の日常</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Stop Worship others</title>
     <url>/posts/14526/</url>
     <content><![CDATA[<h6 id="Stop-Worship-others"><a href="#Stop-Worship-others" class="headerlink" title="Stop Worship others"></a>Stop Worship others</h6><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/"  alt="img"></p>
@@ -156,6 +182,70 @@
       </categories>
       <tags>
         <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>憧憬と尸の道</title>
+    <url>/posts/13965/</url>
+    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
+<p>人类的记忆那一天已苏醒</p>
+<p>夜幕中摇晃的身影虚幻的步伐</p>
+<p>忐忑不安踏着声响</p>
+<p>无法掌握他梦中想看见的未来</p>
+<p>却在薄冰上绽放</p>
+<p>每当太阳西沉黑暗夜幕已降下</p>
+<p>那冰冷的手总会轻轻划过我们的脸庞</p>
+<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
+<p>追寻着希望下的光晕</p>
+<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
+<p>梦境的全貌已经触手就可及</p>
+<p>你愿意牺牲多少来一窥秘密</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>就用尸体骸骨铺路向前进</p>
+<p>那高墙对面存在着怎样的命运</p>
+<p>此刻唤起回忆中的童年憧憬</p>
+<p>真相就在眼前那咫尺的距离</p>
+<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
+<p>哭泣哀悼愤怒怨恨的伤悲</p>
+<p>反复地写入它记忆的终点</p>
+<p>自由是否可有也可无</p>
+<p>Ah-未来本应该有无限的道路</p>
+<p>宿命却催促踏上征途</p>
+<p>他们命运有如罗盘指向同个地方</p>
+<p>那究竟是谁的悲愿又是谁的梦想</p>
+<p>怨恨交织愤怒呐喊撕裂着心脏</p>
+<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
+<p>展开翅膀向着天际直冲而上</p>
+<p>恶魔在你耳边他奸诈地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>在天空那段存在着怎样的命运</p>
+<p>像是灯火般童年被囚禁的心</p>
+<p>如今火焰燃烧着真相与过往</p>
+<p>照亮那片尸体骸骨的前方</p>
+<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
+<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
+<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
+<p>每个步伐就承载了更多的梦</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>那黑暗之后存在着怎样的命运</p>
+<p>童年诅咒如今不再迂阔空虚</p>
+<p>何时才能实现那寄予的愿望</p>
+<p>就在跨过尸体骸骨的前方</p>
+<p>红莲的箭矢疾风呼啸而去</p>
+<p>散落满天的羽翼</p>
+<p>心脏就算撕裂贲张</p>
+<p>Requiem也不需要高声歌唱</p>
+<p>太阳在灵魂消逝西沉之前都不会落下</p>
+<p>勇敢的向前进吧</p>
+<p>向着波涛的彼方</p>
+<p>(END)</p>
+]]></content>
+      <categories>
+        <category>摸鱼</category>
+      </categories>
+      <tags>
+        <tag>摸鱼</tag>
       </tags>
   </entry>
   <entry>
@@ -240,109 +330,6 @@
       </tags>
   </entry>
   <entry>
-    <title>重返高中祭</title>
-    <url>/posts/1388/</url>
-    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
-<p>update:好累,好撑,洗个澡先睡一觉…</p>
-]]></content>
-      <categories>
-        <category>摸鱼</category>
-      </categories>
-      <tags>
-        <tag>摸鱼</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/posts/520520/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>夜谈</category>
-      </categories>
-      <tags>
-        <tag>blog</tag>
-        <tag>总结</tag>
-        <tag>平淡の日常</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>憧憬と尸の道</title>
-    <url>/posts/13965/</url>
-    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
-<p>人类的记忆那一天已苏醒</p>
-<p>夜幕中摇晃的身影虚幻的步伐</p>
-<p>忐忑不安踏着声响</p>
-<p>无法掌握他梦中想看见的未来</p>
-<p>却在薄冰上绽放</p>
-<p>每当太阳西沉黑暗夜幕已降下</p>
-<p>那冰冷的手总会轻轻划过我们的脸庞</p>
-<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
-<p>追寻着希望下的光晕</p>
-<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
-<p>梦境的全貌已经触手就可及</p>
-<p>你愿意牺牲多少来一窥秘密</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>就用尸体骸骨铺路向前进</p>
-<p>那高墙对面存在着怎样的命运</p>
-<p>此刻唤起回忆中的童年憧憬</p>
-<p>真相就在眼前那咫尺的距离</p>
-<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
-<p>哭泣哀悼愤怒怨恨的伤悲</p>
-<p>反复地写入它记忆的终点</p>
-<p>自由是否可有也可无</p>
-<p>Ah-未来本应该有无限的道路</p>
-<p>宿命却催促踏上征途</p>
-<p>他们命运有如罗盘指向同个地方</p>
-<p>那究竟是谁的悲愿又是谁的梦想</p>
-<p>怨恨交织愤怒呐喊撕裂着心脏</p>
-<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
-<p>展开翅膀向着天际直冲而上</p>
-<p>恶魔在你耳边他奸诈地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>在天空那段存在着怎样的命运</p>
-<p>像是灯火般童年被囚禁的心</p>
-<p>如今火焰燃烧着真相与过往</p>
-<p>照亮那片尸体骸骨的前方</p>
-<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
-<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
-<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
-<p>每个步伐就承载了更多的梦</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>那黑暗之后存在着怎样的命运</p>
-<p>童年诅咒如今不再迂阔空虚</p>
-<p>何时才能实现那寄予的愿望</p>
-<p>就在跨过尸体骸骨的前方</p>
-<p>红莲的箭矢疾风呼啸而去</p>
-<p>散落满天的羽翼</p>
-<p>心脏就算撕裂贲张</p>
-<p>Requiem也不需要高声歌唱</p>
-<p>太阳在灵魂消逝西沉之前都不会落下</p>
-<p>勇敢的向前进吧</p>
-<p>向着波涛的彼方</p>
-<p>(END)</p>
-]]></content>
-      <categories>
-        <category>摸鱼</category>
-      </categories>
-      <tags>
-        <tag>摸鱼</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>高考</title>
     <url>/posts/5308/</url>
     <content><![CDATA[<!DOCTYPE html> <html lang="zh"> <head> <meta charset="utf-8"/> <title>Markdown在线编辑器 - www.MdEditor.com</title> <link rel="shortcut icon" href="https://www.mdeditor.com/images/logos/favicon.ico" type="image/x-icon"/> <meta name="generator" content="Hexo 4.2.0"></head> <body><p>今早是被噩梦惊醒的</p> <p>可能潜意识里,高考越来越临近.不自主的就多想了一些,虽然平时也没在意.</p> <p>我居然梦见我复读了</p> <p>时间点居然还是诡异的距离高考三个月前 <del>草</del></p> <p>同复读的还有我高中玩的最好的朋友,目前就读于同济大学.</p> <p>但是说到底,他很强,同济大概只是他垫底的大学.高考他的分数也不是太令他满意.</p> <p>出分后,我曾对他说 你上同济是不是觉得有些遗憾</p> <p>他说 肯定有遗憾 但是高考就是这种一锤子买卖</p> <p>所以这个梦的设定就是我和他都复读了 时间点如上一般诡异</p> <p>我曾经觉得西电不是我的最佳去处 我有加分政策可以去一些中流985了</p> <p>事实上 我的同学也有不少靠专项计划加分去好学校的</p> <p>导致我考的比他们高 他们可以去更好的学校</p> <p>不知道这算不算是一个心结</p> <p>我在填报志愿的时候,也是非XX大学不去,而XX大学,就是我专项计划里的一所.我其实可以去里面读一些</p> <p>冷门的专业(好吧 心理学 噗)</p> <p>不知道选择西电选择计算机会让我以后如何 至少现在 我是很庆幸自己所读的大学不坏 所学的专业有所</p> <p>热爱.</p> <p>选择了xx大学的我 现在又会怎么样呢</p> <p>高考填志愿的那个上午</p> <p>我在电脑旁边 对着提前批报上了xx大学</p> <p>有个浙大毕业的舅舅 专门跟我讲了一下 你要选一个好专业(虽说逢人谈贵戚不是好事,但是这里可能为了说服自己或有缘读到这里的你们,这个人有亿点资产(嗯,真的是亿..并且早早把下一代送往大洋对面读 senior high school)在与母上微信交谈中,向我们根据高考分数推荐了</p> <p><strong>XDU</strong></p> <p>这个学校 高考前没有听说过</p> <p>我他么以为是啥垃圾大学 事实也证明了 在我信阳打taxi的地方 司机好事的问起:你是哪所学校就读的</p> <p>我<s>响亮的</s>回答道 :西安电子科技大学!(不能对外行说北雷村吧)</p> <p>害 和我大学一样是个二本吗</p> <p>是的</p> <p>接着来说说噩梦的故事</p> <p>大概是讲我与X同学一起复读 拾起了我许久不曾做的数学题 恰巧X是个数学大佬 看他做起来轻轻松松 </p> <p>而我异常困难,我心中就想:为什么我会的在距离高考三个月前来这里复读啊啊啊啊啊啊!!!!!我现在啥</p> <p>都不会了,梦里的我看着错的不少的数学题,一身冷汗.</p> <p>和梦里与x同学交流后,他说:我放弃同济来复读也有很大的心理压力(此处省略鸡汤)</p> <p>大概这样 我在梦里逐渐放弃了挣扎 决定剩下三个月好好学习 换取个奇迹….</p> <p>后来我就惊醒了…</p> <p>醒来后的许久 我都觉得 啊 有大学上真的太幸福了!</p> <p>XDU真是所好学校呢!!</p> <p>这个梦说来也巧 可能就是为了让我接受已经来了所211的事实吧</p> <p>我的高考分数是基本与我平时分差不多的 高考正常发挥就已经算是超长发挥了 所以来到XDU也没啥好抱</p> <p>怨的 何况在这里也有许多优秀的人(友链)</p> <p>嗯 就这样 高考过去一年了啊~</p> <script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body> </html>
@@ -354,6 +341,19 @@
       </categories>
       <tags>
         <tag>-总结 -感想</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>重返高中祭</title>
+    <url>/posts/1388/</url>
+    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
+<p>update:好累,好撑,洗个澡先睡一觉…</p>
+]]></content>
+      <categories>
+        <category>摸鱼</category>
+      </categories>
+      <tags>
+        <tag>摸鱼</tag>
       </tags>
   </entry>
 </search>

@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>写在十八岁之际</title>
+    <url>/posts/22741/</url>
+    <content><![CDATA[<h2 id="写在十八岁之际"><a href="#写在十八岁之际" class="headerlink" title="写在十八岁之际:"></a>写在十八岁之际:</h2><p>从今天开始就要正式成为成年人了<del>QAQ(成年人不允许这种颜文字</del></p>
+<p>没想到写到第二句我就不知道说些什么了,我果然只适合写一些FD的言论.</p>
+<p>今年是个令我有很大成长的一年,也是我来到XDU的第二年,不得不说XDU至少在搞机这方</p>
+<p>面的氛围可以作为来这里的重要原因.也结识了几个很会搞机的学长(其实也有<del>学姐</del>,但</p>
+<p>她们code能力多少弱一些)</p>
+<p>想来来这里的第一年和今年心态有很大变化,不会因为我更<del>mature</del>了吧.也更加坚定</p>
+<p>了自己未来的目标,个人觉得还是对宇宙机与技术很感兴趣.但是因为这是一篇生日水文</p>
+<p>所以严肃一些的话题不予讨论.</p>
+<p>我果然不适合写这种一本正经的文章,进入带学撸码一年已经丧失了写作能力…</p>
+<p>那就放几个我的项目吧,希望未来能一直走下去.</p>
+<p><a href="https://github.com/baijianruoliorz/mengnanClass" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=mengnanClass"  alt="ReadMe Card"></a></p>
+<p><a href="https://github.com/baijianruoliorz/bluebell" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=bluebell"  alt="ReadMe Card"></a>    </p>
+<p><a href="https://github.com/baijianruoliorz/renting_springboot" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=renting_springboot"  alt="ReadMe Card"></a></p>
+<p>使命は、何としても完成するのか.</p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MIT6.824 LAB1</title>
     <url>/posts/60658/</url>
     <content><![CDATA[<h3 id="mit6-824-系列学习"><a href="#mit6-824-系列学习" class="headerlink" title="mit6.824 系列学习"></a>mit6.824 系列学习</h3><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
@@ -100,32 +125,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/posts/520520/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>夜谈</category>
-      </categories>
-      <tags>
-        <tag>blog</tag>
-        <tag>总结</tag>
-        <tag>平淡の日常</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Stop Worship others</title>
     <url>/posts/14526/</url>
     <content><![CDATA[<h6 id="Stop-Worship-others"><a href="#Stop-Worship-others" class="headerlink" title="Stop Worship others"></a>Stop Worship others</h6><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/"  alt="img"></p>
@@ -176,44 +175,6 @@
 <p>但就在网上开始吹嘘网文输出之后没几个月吧，一通整顿，死一大片。这可不是心血来潮，隔三差五就来一次。自我审查，网站审查之外，如今又多了举报这个良好习惯。没记错的话，玄幻题材改编电视剧电影也受限吧？说正经的，现在独立游戏何尝没有在国外打榜？但你信不信，一做大，全完？都不用审查部门出手，同行和玩家就能举报得你下架，现在找个毛病出来还不容易么？</p>
 <p>免不了有人义愤填膺地找到了破绽：题目是怎么提高输出，你回答了个鬼！</p>
 <p>真要认真说，你也就看不到什么了。再说，2-（-1）=3，会算吗？</p>
-]]></content>
-      <categories>
-        <category>夜谈</category>
-      </categories>
-      <tags>
-        <tag>夜谈</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>重返高中祭</title>
-    <url>/posts/1388/</url>
-    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
-<p>update:好累,好撑,洗个澡先睡一觉…</p>
-]]></content>
-      <categories>
-        <category>摸鱼</category>
-      </categories>
-      <tags>
-        <tag>摸鱼</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>写在十八岁之际</title>
-    <url>/posts/22741/</url>
-    <content><![CDATA[<h2 id="写在十八岁之际"><a href="#写在十八岁之际" class="headerlink" title="写在十八岁之际:"></a>写在十八岁之际:</h2><p>从今天开始就要正式成为成年人了<del>QAQ(成年人不允许这种颜文字</del></p>
-<p>没想到写到第二句我就不知道说些什么了,我果然只适合写一些FD的言论.</p>
-<p>今年是个令我有很大成长的一年,也是我来到XDU的第二年,不得不说XDU至少在搞机这方</p>
-<p>面的氛围可以作为来这里的重要原因.也结识了几个很会搞机的学长(其实也有<del>学姐</del>,但</p>
-<p>她们code能力多少弱一些)</p>
-<p>想来来这里的第一年和今年心态有很大变化,不会因为我更<del>mature</del>了吧.也更加坚定</p>
-<p>了自己未来的目标,个人觉得还是对宇宙机与技术很感兴趣.但是因为这是一篇生日水文</p>
-<p>所以严肃一些的话题不予讨论.</p>
-<p>我果然不适合写这种一本正经的文章,进入带学撸码一年已经丧失了写作能力…</p>
-<p>那就放几个我的项目吧,希望未来能一直走下去.</p>
-<p><a href="https://github.com/baijianruoliorz/mengnanClass" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=mengnanClass"  alt="ReadMe Card"></a></p>
-<p><a href="https://github.com/baijianruoliorz/bluebell" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=bluebell"  alt="ReadMe Card"></a>    </p>
-<p><a href="https://github.com/baijianruoliorz/renting_springboot" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=renting_springboot"  alt="ReadMe Card"></a></p>
-<p>使命は、何としても完成するのか.</p>
 ]]></content>
       <categories>
         <category>夜谈</category>
@@ -279,17 +240,42 @@
       </tags>
   </entry>
   <entry>
-    <title>高考</title>
-    <url>/posts/5308/</url>
-    <content><![CDATA[<!DOCTYPE html> <html lang="zh"> <head> <meta charset="utf-8"/> <title>Markdown在线编辑器 - www.MdEditor.com</title> <link rel="shortcut icon" href="https://www.mdeditor.com/images/logos/favicon.ico" type="image/x-icon"/> <meta name="generator" content="Hexo 4.2.0"></head> <body><p>今早是被噩梦惊醒的</p> <p>可能潜意识里,高考越来越临近.不自主的就多想了一些,虽然平时也没在意.</p> <p>我居然梦见我复读了</p> <p>时间点居然还是诡异的距离高考三个月前 <del>草</del></p> <p>同复读的还有我高中玩的最好的朋友,目前就读于同济大学.</p> <p>但是说到底,他很强,同济大概只是他垫底的大学.高考他的分数也不是太令他满意.</p> <p>出分后,我曾对他说 你上同济是不是觉得有些遗憾</p> <p>他说 肯定有遗憾 但是高考就是这种一锤子买卖</p> <p>所以这个梦的设定就是我和他都复读了 时间点如上一般诡异</p> <p>我曾经觉得西电不是我的最佳去处 我有加分政策可以去一些中流985了</p> <p>事实上 我的同学也有不少靠专项计划加分去好学校的</p> <p>导致我考的比他们高 他们可以去更好的学校</p> <p>不知道这算不算是一个心结</p> <p>我在填报志愿的时候,也是非XX大学不去,而XX大学,就是我专项计划里的一所.我其实可以去里面读一些</p> <p>冷门的专业(好吧 心理学 噗)</p> <p>不知道选择西电选择计算机会让我以后如何 至少现在 我是很庆幸自己所读的大学不坏 所学的专业有所</p> <p>热爱.</p> <p>选择了xx大学的我 现在又会怎么样呢</p> <p>高考填志愿的那个上午</p> <p>我在电脑旁边 对着提前批报上了xx大学</p> <p>有个浙大毕业的舅舅 专门跟我讲了一下 你要选一个好专业(虽说逢人谈贵戚不是好事,但是这里可能为了说服自己或有缘读到这里的你们,这个人有亿点资产(嗯,真的是亿..并且早早把下一代送往大洋对面读 senior high school)在与母上微信交谈中,向我们根据高考分数推荐了</p> <p><strong>XDU</strong></p> <p>这个学校 高考前没有听说过</p> <p>我他么以为是啥垃圾大学 事实也证明了 在我信阳打taxi的地方 司机好事的问起:你是哪所学校就读的</p> <p>我<s>响亮的</s>回答道 :西安电子科技大学!(不能对外行说北雷村吧)</p> <p>害 和我大学一样是个二本吗</p> <p>是的</p> <p>接着来说说噩梦的故事</p> <p>大概是讲我与X同学一起复读 拾起了我许久不曾做的数学题 恰巧X是个数学大佬 看他做起来轻轻松松 </p> <p>而我异常困难,我心中就想:为什么我会的在距离高考三个月前来这里复读啊啊啊啊啊啊!!!!!我现在啥</p> <p>都不会了,梦里的我看着错的不少的数学题,一身冷汗.</p> <p>和梦里与x同学交流后,他说:我放弃同济来复读也有很大的心理压力(此处省略鸡汤)</p> <p>大概这样 我在梦里逐渐放弃了挣扎 决定剩下三个月好好学习 换取个奇迹….</p> <p>后来我就惊醒了…</p> <p>醒来后的许久 我都觉得 啊 有大学上真的太幸福了!</p> <p>XDU真是所好学校呢!!</p> <p>这个梦说来也巧 可能就是为了让我接受已经来了所211的事实吧</p> <p>我的高考分数是基本与我平时分差不多的 高考正常发挥就已经算是超长发挥了 所以来到XDU也没啥好抱</p> <p>怨的 何况在这里也有许多优秀的人(友链)</p> <p>嗯 就这样 高考过去一年了啊~</p> <script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body> </html>
+    <title>Hello World</title>
+    <url>/posts/520520/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
 
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
 
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
 ]]></content>
       <categories>
-        <category>感想</category>
+        <category>夜谈</category>
       </categories>
       <tags>
-        <tag>-总结 -感想</tag>
+        <tag>blog</tag>
+        <tag>总结</tag>
+        <tag>平淡の日常</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>重返高中祭</title>
+    <url>/posts/1388/</url>
+    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
+<p>update:好累,好撑,洗个澡先睡一觉…</p>
+]]></content>
+      <categories>
+        <category>摸鱼</category>
+      </categories>
+      <tags>
+        <tag>摸鱼</tag>
       </tags>
   </entry>
   <entry>
@@ -354,6 +340,20 @@
       </categories>
       <tags>
         <tag>摸鱼</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>高考</title>
+    <url>/posts/5308/</url>
+    <content><![CDATA[<!DOCTYPE html> <html lang="zh"> <head> <meta charset="utf-8"/> <title>Markdown在线编辑器 - www.MdEditor.com</title> <link rel="shortcut icon" href="https://www.mdeditor.com/images/logos/favicon.ico" type="image/x-icon"/> <meta name="generator" content="Hexo 4.2.0"></head> <body><p>今早是被噩梦惊醒的</p> <p>可能潜意识里,高考越来越临近.不自主的就多想了一些,虽然平时也没在意.</p> <p>我居然梦见我复读了</p> <p>时间点居然还是诡异的距离高考三个月前 <del>草</del></p> <p>同复读的还有我高中玩的最好的朋友,目前就读于同济大学.</p> <p>但是说到底,他很强,同济大概只是他垫底的大学.高考他的分数也不是太令他满意.</p> <p>出分后,我曾对他说 你上同济是不是觉得有些遗憾</p> <p>他说 肯定有遗憾 但是高考就是这种一锤子买卖</p> <p>所以这个梦的设定就是我和他都复读了 时间点如上一般诡异</p> <p>我曾经觉得西电不是我的最佳去处 我有加分政策可以去一些中流985了</p> <p>事实上 我的同学也有不少靠专项计划加分去好学校的</p> <p>导致我考的比他们高 他们可以去更好的学校</p> <p>不知道这算不算是一个心结</p> <p>我在填报志愿的时候,也是非XX大学不去,而XX大学,就是我专项计划里的一所.我其实可以去里面读一些</p> <p>冷门的专业(好吧 心理学 噗)</p> <p>不知道选择西电选择计算机会让我以后如何 至少现在 我是很庆幸自己所读的大学不坏 所学的专业有所</p> <p>热爱.</p> <p>选择了xx大学的我 现在又会怎么样呢</p> <p>高考填志愿的那个上午</p> <p>我在电脑旁边 对着提前批报上了xx大学</p> <p>有个浙大毕业的舅舅 专门跟我讲了一下 你要选一个好专业(虽说逢人谈贵戚不是好事,但是这里可能为了说服自己或有缘读到这里的你们,这个人有亿点资产(嗯,真的是亿..并且早早把下一代送往大洋对面读 senior high school)在与母上微信交谈中,向我们根据高考分数推荐了</p> <p><strong>XDU</strong></p> <p>这个学校 高考前没有听说过</p> <p>我他么以为是啥垃圾大学 事实也证明了 在我信阳打taxi的地方 司机好事的问起:你是哪所学校就读的</p> <p>我<s>响亮的</s>回答道 :西安电子科技大学!(不能对外行说北雷村吧)</p> <p>害 和我大学一样是个二本吗</p> <p>是的</p> <p>接着来说说噩梦的故事</p> <p>大概是讲我与X同学一起复读 拾起了我许久不曾做的数学题 恰巧X是个数学大佬 看他做起来轻轻松松 </p> <p>而我异常困难,我心中就想:为什么我会的在距离高考三个月前来这里复读啊啊啊啊啊啊!!!!!我现在啥</p> <p>都不会了,梦里的我看着错的不少的数学题,一身冷汗.</p> <p>和梦里与x同学交流后,他说:我放弃同济来复读也有很大的心理压力(此处省略鸡汤)</p> <p>大概这样 我在梦里逐渐放弃了挣扎 决定剩下三个月好好学习 换取个奇迹….</p> <p>后来我就惊醒了…</p> <p>醒来后的许久 我都觉得 啊 有大学上真的太幸福了!</p> <p>XDU真是所好学校呢!!</p> <p>这个梦说来也巧 可能就是为了让我接受已经来了所211的事实吧</p> <p>我的高考分数是基本与我平时分差不多的 高考正常发挥就已经算是超长发挥了 所以来到XDU也没啥好抱</p> <p>怨的 何况在这里也有许多优秀的人(友链)</p> <p>嗯 就这样 高考过去一年了啊~</p> <script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body> </html>
+
+
+]]></content>
+      <categories>
+        <category>感想</category>
+      </categories>
+      <tags>
+        <tag>-总结 -感想</tag>
       </tags>
   </entry>
 </search>

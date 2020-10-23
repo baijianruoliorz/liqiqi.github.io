@@ -1,34 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Wizz工作室面基大会</title>
-    <url>/posts/37390/</url>
-    <content><![CDATA[<h3 id="Wizz工作室面基大会"><a href="#Wizz工作室面基大会" class="headerlink" title="Wizz工作室面基大会"></a>Wizz工作室面基大会</h3><p>10月16号,我参加了Wizz的面基大会.</p>
-<p>有一说一,之前对这种”<del>ST</del>式”讨论向来是抵制的,不过从今晚来看,感觉的确有很大的作用.</p>
-<p>首先是17级转正阿里的TY学长，讲了自己加入为之三年来的成长。<del>阿里真的是我超级心水的公司 当然宇宙条也是</del>.希望自己能成为像学长一样厉害的人吧.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005336.jpg"  alt=""></p>
-<p>然后是18级JF学姐，<del>讲太多了</del>讲的内容丰富又让人深思联想.身为Wizz’s leader的她让我开始重新审视”产品”这个职位.(插一句话:开完面基会后与<del>BB酱</del>讨论了相关事宜,,总之我也表达不出来,产品真的是十分有必要的存在,JF学姐的控场能力也超强的.)<del>不过重点是人也漂亮</del></p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005329.jpg"  alt=""></p>
-<p>最后一个<del>突然流水账了起来</del>是我respect的QHT(因为太瑞思拜所以直接打出全名也是理所当然的,ssfd),身为Wizz技术负责人(orzorzorzorzorz(RTWG)当然经常让我直接没事就膜拜他的code.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005339.jpg"  alt=""></p>
-<p>以上是学长/姐 们的巨佬发言.</p>
-<p>中途大家都轮流简单介绍了自己.令我印象深刻的是拿了BAT三家offer的学姐orzorzorzorz.</p>
-<p>接下来就是Z老师了,以及Z老师三个超级强的同事,出口就是某力D总级别的,因为讲话的人太巨了(<del>没有想去WC这回事</del>)所以听的有点迷,总之就是十分dick的那种感觉.老师的照片就不放了,<del>考虑到知名度</del>.</p>
-<p>结束的时候大家又去211自由谈论了一会儿,认识了十分可爱又强大的<del>BB酱</del>,因为之前在某实验班面试过我所以还是想深♂入了解一下<del>BB酱</del>.聊着聊着BB酱真的是巨.我只能在旁边疯狂/kk.</p>
-<p>本来想和QHT学长也深♂入交流一下,结果他好像很忙/kk. </p>
-<p>接着认识了DB的开发者.我GitHub单向fo的巨佬(TG行为真的是呜呜)/kk.</p>
-<p>呜呜嘤,好多巨佬啊.萌新只能在一旁ssfd.</p>
-<p>Concluded: 我是最菜的了./kk.</p>
-]]></content>
-      <categories>
-        <category>Wizz</category>
-      </categories>
-      <tags>
-        <tag>夜谈</tag>
-        <tag>blog</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Grpc系列学习(一)</title>
     <url>/posts/57842/</url>
     <content><![CDATA[<p>##Grpc系列学习(一)</p>
@@ -113,8 +85,90 @@
         <category>分布式</category>
       </categories>
       <tags>
-        <tag>blog</tag>
         <tag>Grpc</tag>
+        <tag>blog</tag>
+        <tag>分布式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Grpc系列学习(二)</title>
+    <url>/posts/8534/</url>
+    <content><![CDATA[<p>Grpc系列学习(二)</p>
+<p>写在前面:因为1024CSDN写博客会有徽章,本人多少带点收集控,故正好整理出第二篇关于Grpc的学习文章.</p>
+<p>这次照例宣传一下我的个人博客:</p>
+<h3 id="demo"><a href="#demo" class="headerlink" title="demo:"></a>demo:</h3><h1 id="制作证书"><a href="#制作证书" class="headerlink" title="制作证书"></a><strong>制作证书</strong></h1><p>在服务端支持<code>Rpc</code>和<code>Restful Api</code>，需要用到<code>TLS</code>，因此我们要先制作证书</p>
+<p>进入<code>certs</code>目录，生成<code>TLS</code>所需的公钥密钥文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line"></span><br><span class="line">openssl ecparam -genkey -name secp384r1 -out server.key</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>openssl genrsa</code>：生成<code>RSA</code>私钥，命令的最后一个参数，将指定生成密钥的位数，如果没有指定，默认512</li>
+<li><code>openssl ecparam</code>：生成<code>ECC</code>私钥，命令为椭圆曲线密钥参数生成及操作，本文中<code>ECC</code>曲线选择的是<code>secp384r1</code></li>
+</ul>
+<h4 id="自签名公钥"><a href="#自签名公钥" class="headerlink" title="自签名公钥"></a>自签名公钥</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650</span><br></pre></td></tr></table></figure>
+
+<p><code>openssl req</code>：生成自签名证书，<code>-new</code>指生成证书请求、<code>-sha256</code>指使用<code>sha256</code>加密、<code>-key</code>指定私钥文件、<code>-x509</code>指输出证书、<code>-days 3650</code>为有效期，此后则输入证书拥有者信息</p>
+<h4 id="填写信息"><a href="#填写信息" class="headerlink" title="填写信息"></a>填写信息</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Country Name (2 letter code) [XX]:</span><br><span class="line">State or Province Name (full name) []:</span><br><span class="line">Locality Name (eg, city) [Default City]:</span><br><span class="line">Organization Name (eg, company) [Default Company Ltd]:</span><br><span class="line">Organizational Unit Name (eg, section) []:</span><br><span class="line">Common Name (eg, your name or your server&#39;s hostname) []:grpc server name</span><br><span class="line">Email Address []:</span><br></pre></td></tr></table></figure>
+
+<h3 id="Proto"><a href="#Proto" class="headerlink" title="Proto"></a>Proto</h3><h4 id="编写"><a href="#编写" class="headerlink" title="编写"></a>编写</h4><p>1.google.api</p>
+<p>我们看到<code>proto</code>目录中有<code>google/api</code>目录，它用到了<code>google</code>官方提供的两个<code>api</code>描述文件，主要是针对<code>grpc-gateway</code>的<code>http</code>转换提供支持，定义了<code>Protocol Buffer</code>所扩展的<code>HTTP Option</code></p>
+<p><code>annotations.proto</code>文件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright (c) 2015, Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line">​</span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line">​</span><br><span class="line">package google.api;</span><br><span class="line">​</span><br><span class="line">import &quot;google&#x2F;api&#x2F;http.proto&quot;;</span><br><span class="line">import &quot;google&#x2F;protobuf&#x2F;descriptor.proto&quot;;</span><br><span class="line">​</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;AnnotationsProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line">​</span><br><span class="line">extend google.protobuf.MethodOptions &#123;</span><br><span class="line">  &#x2F;&#x2F; See &#96;HttpRule&#96;.</span><br><span class="line">  HttpRule http &#x3D; 72295728;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>http.proto</code>文件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright 2016 Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line"></span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package google.api;</span><br><span class="line"></span><br><span class="line">option cc_enable_arenas &#x3D; true;</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;HttpProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Defines the HTTP configuration for a service. It contains a list of</span><br><span class="line">&#x2F;&#x2F; [HttpRule][google.api.HttpRule], each specifying the mapping of an RPC method</span><br><span class="line">&#x2F;&#x2F; to one or more HTTP REST API methods.</span><br><span class="line">message Http &#123;</span><br><span class="line">  &#x2F;&#x2F; A list of HTTP rules for configuring the HTTP REST API methods.</span><br><span class="line">  repeated HttpRule rules &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Use CustomHttpPattern to specify any HTTP method that is not included in the</span><br><span class="line">&#x2F;&#x2F; &#96;pattern&#96; field, such as HEAD, or &quot;*&quot; to leave the HTTP method unspecified for</span><br><span class="line">&#x2F;&#x2F; a given URL path rule. The wild-card rule is useful for services that provide</span><br><span class="line">&#x2F;&#x2F; content to Web (HTML) clients.</span><br><span class="line">message HttpRule &#123;</span><br><span class="line">  &#x2F;&#x2F; Selects methods to which this rule applies.</span><br><span class="line">  &#x2F;&#x2F;</span><br><span class="line">  &#x2F;&#x2F; Refer to [selector][google.api.DocumentationRule.selector] for syntax details.</span><br><span class="line">  string selector &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Determines the URL pattern is matched by this rules. This pattern can be</span><br><span class="line">  &#x2F;&#x2F; used with any of the &#123;get|put|post|delete|patch&#125; methods. A custom method</span><br><span class="line">  &#x2F;&#x2F; can be defined using the &#39;custom&#39; field.</span><br><span class="line">  oneof pattern &#123;</span><br><span class="line">    &#x2F;&#x2F; Used for listing and getting information about resources.</span><br><span class="line">    string get &#x3D; 2;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string put &#x3D; 3;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for creating a resource.</span><br><span class="line">    string post &#x3D; 4;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for deleting a resource.</span><br><span class="line">    string delete &#x3D; 5;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string patch &#x3D; 6;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Custom pattern is used for defining custom verbs.</span><br><span class="line">    CustomHttpPattern custom &#x3D; 8;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The name of the request field whose value is mapped to the HTTP body, or</span><br><span class="line">  &#x2F;&#x2F; &#96;*&#96; for mapping all fields not captured by the path pattern to the HTTP</span><br><span class="line">  &#x2F;&#x2F; body. NOTE: the referred field must not be a repeated field.</span><br><span class="line">  string body &#x3D; 7;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Additional HTTP bindings for the selector. Nested bindings must</span><br><span class="line">  &#x2F;&#x2F; not contain an &#96;additional_bindings&#96; field themselves (that is,</span><br><span class="line">  &#x2F;&#x2F; the nesting may only be one level deep).</span><br><span class="line">  repeated HttpRule additional_bindings &#x3D; 11;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; A custom pattern is used for defining custom HTTP verb.</span><br><span class="line">message CustomHttpPattern &#123;</span><br><span class="line">  &#x2F;&#x2F; The name of this custom HTTP verb.</span><br><span class="line">  string kind &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The path matched by this custom verb.</span><br><span class="line">  string path &#x3D; 2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><code>hello.proto</code></li>
+</ol>
+<p>这一小节将编写<code>Demo</code>的<code>.proto</code>文件，我们在<code>proto</code>目录下新建<code>hello.proto</code>文件，写入文件内容：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package proto;</span><br><span class="line"></span><br><span class="line">import &quot;google&#x2F;api&#x2F;annotations.proto&quot;;</span><br><span class="line"></span><br><span class="line">service HelloWorld &#123;</span><br><span class="line">    rpc SayHelloWorld(HelloWorldRequest) returns (HelloWorldResponse) &#123;</span><br><span class="line">        option (google.api.http) &#x3D; &#123;</span><br><span class="line">            post: &quot;&#x2F;hello_world&quot;</span><br><span class="line">            body: &quot;*&quot;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldRequest &#123;</span><br><span class="line">    string referer &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldResponse &#123;</span><br><span class="line">    string message &#x3D; 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在<code>hello.proto</code>文件中，引用了<code>google/api/annotations.proto</code>，达到支持<code>HTTP Option</code>的效果</p>
+<ul>
+<li>定义了一个<code>service</code>RPC服务<code>HelloWorld</code>，在其内部定义了一个<code>HTTP Option</code>的<code>POST</code>方法，<code>HTTP</code>响应路径为<code>/hello_world</code></li>
+<li>定义<code>message</code>类型<code>HelloWorldRequest</code>、<code>HelloWorldResponse</code>，用于响应请求和返回结果</li>
+</ul>
+<h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a><strong>编译</strong></h2><p>在编写完<code>.proto</code>文件后，我们需要对其进行编译，就能够在<code>server</code>中使用</p>
+<p>进入<code>proto</code>目录，执行以下命令</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 编译google.api</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;protobuf&#x2F;descriptor.proto&#x3D;github.com&#x2F;golang&#x2F;protobuf&#x2F;protoc-gen-go&#x2F;descriptor:. google&#x2F;api&#x2F;*.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.proto</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;api&#x2F;annotations.proto&#x3D;grpc-hello-world&#x2F;proto&#x2F;google&#x2F;api:. .&#x2F;hello.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.gw.proto</span><br><span class="line">protoc --grpc-gateway_out&#x3D;logtostderr&#x3D;true:. .&#x2F;hello.proto</span><br></pre></td></tr></table></figure>
+
+<p>执行完毕后将生成<code>hello.pb.go</code>和<code>hello.gw.pb.go</code>，分别针对<code>grpc</code>和<code>grpc-gateway</code>的功能支持</p>
+<h3 id="命令行模块-cmd"><a href="#命令行模块-cmd" class="headerlink" title="命令行模块 cmd"></a><strong>命令行模块</strong> <code>cmd</code></h3><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a><strong>介绍</strong></h2><p>这一小节我们编写命令行模块，为什么要独立出来呢，是为了将<code>cmd</code>和<code>server</code>两者解耦，避免混淆在一起。</p>
+<p>我们采用 <a href="https://github.com/spf13/cobra" target="_blank" rel="noopener">Cobra</a> 来完成这项功能，<code>Cobra</code>既是创建强大的现代CLI应用程序的库，也是生成应用程序和命令文件的程序。提供了以下功能：</p>
+<ul>
+<li>简易的子命令行模式</li>
+<li>完全兼容posix的命令行模式(包括短和长版本)</li>
+<li>嵌套的子命令</li>
+<li>全局、本地和级联<code>flags</code></li>
+<li>使用<code>Cobra</code>很容易的生成应用程序和命令，使用<code>cobra create appname</code>和<code>cobra add cmdname</code></li>
+<li>智能提示</li>
+<li>自动生成commands和flags的帮助信息</li>
+<li>自动生成详细的help信息<code>-h</code>，<code>--help</code>等等</li>
+<li>自动生成的bash自动完成功能</li>
+<li>为应用程序自动生成手册</li>
+<li>命令别名</li>
+<li>定义您自己的帮助、用法等的灵活性。</li>
+<li>可选与<a href="https://github.com/spf13/viper" target="_blank" rel="noopener">viper</a>紧密集成的apps</li>
+</ul>
+<p>—选自某百科</p>
+<h2 id="编写server"><a href="#编写server" class="headerlink" title="编写server"></a><strong>编写<code>server</code></strong></h2><p>在编写<code>cmd</code>时需要先用<code>server</code>进行测试关联，因此这一步我们先写<code>server.go</code>用于测试</p>
+<p>在<code>server</code>模块下 新建<code>server.go</code>文件，写入测试内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> server</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    ServerPort <span class="keyword">string</span></span><br><span class="line">    CertName <span class="keyword">string</span></span><br><span class="line">    CertPemPath <span class="keyword">string</span></span><br><span class="line">    CertKeyPath <span class="keyword">string</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Serve</span><span class="params">()</span> <span class="params">(err error)</span></span>&#123;</span><br><span class="line">    log.Println(ServerPort)</span><br><span class="line"></span><br><span class="line">    log.Println(CertName)</span><br><span class="line"></span><br><span class="line">    log.Println(CertPemPath)</span><br><span class="line"></span><br><span class="line">    log.Println(CertKeyPath)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编写cmd"><a href="#编写cmd" class="headerlink" title="编写cmd"></a><strong>编写<code>cmd</code></strong></h2><p>在<code>cmd</code>模块下 新建<code>root.go</code>文件，写入内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"os"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> rootCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"grpc"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Execute</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> err := rootCmd.Execute(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(err)</span><br><span class="line">        os.Exit(<span class="number">-1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>emmm….这个官网的Hello World还是有点多的,今天就不写了~~</p>
+<p>@copyright ————baijianruoliorz@Github——————————–</p>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>Grpc</tag>
+        <tag>blog</tag>
         <tag>分布式</tag>
       </tags>
   </entry>
@@ -277,29 +331,31 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/posts/520520/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+    <title>Wizz工作室面基大会</title>
+    <url>/posts/37390/</url>
+    <content><![CDATA[<h3 id="Wizz工作室面基大会"><a href="#Wizz工作室面基大会" class="headerlink" title="Wizz工作室面基大会"></a>Wizz工作室面基大会</h3><p>10月16号,我参加了Wizz的面基大会.</p>
+<p>有一说一,之前对这种”<del>ST</del>式”讨论向来是抵制的,不过从今晚来看,感觉的确有很大的作用.</p>
+<p>首先是17级转正阿里的TY学长，讲了自己加入为之三年来的成长。<del>阿里真的是我超级心水的公司 当然宇宙条也是</del>.希望自己能成为像学长一样厉害的人吧.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005336.jpg"  alt=""></p>
+<p>然后是18级JF学姐，<del>讲太多了</del>讲的内容丰富又让人深思联想.身为Wizz’s leader的她让我开始重新审视”产品”这个职位.(插一句话:开完面基会后与<del>BB酱</del>讨论了相关事宜,,总之我也表达不出来,产品真的是十分有必要的存在,JF学姐的控场能力也超强的.)<del>不过重点是人也漂亮</del></p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005329.jpg"  alt=""></p>
+<p>最后一个<del>突然流水账了起来</del>是我respect的QHT(因为太瑞思拜所以直接打出全名也是理所当然的,ssfd),身为Wizz技术负责人(orzorzorzorzorz(RTWG)当然经常让我直接没事就膜拜他的code.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005339.jpg"  alt=""></p>
+<p>以上是学长/姐 们的巨佬发言.</p>
+<p>中途大家都轮流简单介绍了自己.令我印象深刻的是拿了BAT三家offer的学姐orzorzorzorz.</p>
+<p>接下来就是Z老师了,以及Z老师三个超级强的同事,出口就是某力D总级别的,因为讲话的人太巨了(<del>没有想去WC这回事</del>)所以听的有点迷,总之就是十分dick的那种感觉.老师的照片就不放了,<del>考虑到知名度</del>.</p>
+<p>结束的时候大家又去211自由谈论了一会儿,认识了十分可爱又强大的<del>BB酱</del>,因为之前在某实验班面试过我所以还是想深♂入了解一下<del>BB酱</del>.聊着聊着BB酱真的是巨.我只能在旁边疯狂/kk.</p>
+<p>本来想和QHT学长也深♂入交流一下,结果他好像很忙/kk. </p>
+<p>接着认识了DB的开发者.我GitHub单向fo的巨佬(TG行为真的是呜呜)/kk.</p>
+<p>呜呜嘤,好多巨佬啊.萌新只能在一旁ssfd.</p>
+<p>Concluded: 我是最菜的了./kk.</p>
 ]]></content>
       <categories>
-        <category>夜谈</category>
+        <category>Wizz</category>
       </categories>
       <tags>
         <tag>blog</tag>
-        <tag>总结</tag>
-        <tag>平淡の日常</tag>
+        <tag>夜谈</tag>
       </tags>
   </entry>
   <entry>
@@ -325,6 +381,32 @@
       </categories>
       <tags>
         <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/posts/520520/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>总结</tag>
+        <tag>平淡の日常</tag>
       </tags>
   </entry>
   <entry>
@@ -381,6 +463,70 @@
       </categories>
       <tags>
         <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>憧憬と尸の道</title>
+    <url>/posts/13965/</url>
+    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
+<p>人类的记忆那一天已苏醒</p>
+<p>夜幕中摇晃的身影虚幻的步伐</p>
+<p>忐忑不安踏着声响</p>
+<p>无法掌握他梦中想看见的未来</p>
+<p>却在薄冰上绽放</p>
+<p>每当太阳西沉黑暗夜幕已降下</p>
+<p>那冰冷的手总会轻轻划过我们的脸庞</p>
+<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
+<p>追寻着希望下的光晕</p>
+<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
+<p>梦境的全貌已经触手就可及</p>
+<p>你愿意牺牲多少来一窥秘密</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>就用尸体骸骨铺路向前进</p>
+<p>那高墙对面存在着怎样的命运</p>
+<p>此刻唤起回忆中的童年憧憬</p>
+<p>真相就在眼前那咫尺的距离</p>
+<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
+<p>哭泣哀悼愤怒怨恨的伤悲</p>
+<p>反复地写入它记忆的终点</p>
+<p>自由是否可有也可无</p>
+<p>Ah-未来本应该有无限的道路</p>
+<p>宿命却催促踏上征途</p>
+<p>他们命运有如罗盘指向同个地方</p>
+<p>那究竟是谁的悲愿又是谁的梦想</p>
+<p>怨恨交织愤怒呐喊撕裂着心脏</p>
+<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
+<p>展开翅膀向着天际直冲而上</p>
+<p>恶魔在你耳边他奸诈地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>在天空那段存在着怎样的命运</p>
+<p>像是灯火般童年被囚禁的心</p>
+<p>如今火焰燃烧着真相与过往</p>
+<p>照亮那片尸体骸骨的前方</p>
+<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
+<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
+<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
+<p>每个步伐就承载了更多的梦</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>那黑暗之后存在着怎样的命运</p>
+<p>童年诅咒如今不再迂阔空虚</p>
+<p>何时才能实现那寄予的愿望</p>
+<p>就在跨过尸体骸骨的前方</p>
+<p>红莲的箭矢疾风呼啸而去</p>
+<p>散落满天的羽翼</p>
+<p>心脏就算撕裂贲张</p>
+<p>Requiem也不需要高声歌唱</p>
+<p>太阳在灵魂消逝西沉之前都不会落下</p>
+<p>勇敢的向前进吧</p>
+<p>向着波涛的彼方</p>
+<p>(END)</p>
+]]></content>
+      <categories>
+        <category>摸鱼</category>
+      </categories>
+      <tags>
+        <tag>摸鱼</tag>
       </tags>
   </entry>
   <entry>
@@ -452,70 +598,6 @@
       <tags>
         <tag>blog</tag>
         <tag>中间件</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>憧憬と尸の道</title>
-    <url>/posts/13965/</url>
-    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
-<p>人类的记忆那一天已苏醒</p>
-<p>夜幕中摇晃的身影虚幻的步伐</p>
-<p>忐忑不安踏着声响</p>
-<p>无法掌握他梦中想看见的未来</p>
-<p>却在薄冰上绽放</p>
-<p>每当太阳西沉黑暗夜幕已降下</p>
-<p>那冰冷的手总会轻轻划过我们的脸庞</p>
-<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
-<p>追寻着希望下的光晕</p>
-<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
-<p>梦境的全貌已经触手就可及</p>
-<p>你愿意牺牲多少来一窥秘密</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>就用尸体骸骨铺路向前进</p>
-<p>那高墙对面存在着怎样的命运</p>
-<p>此刻唤起回忆中的童年憧憬</p>
-<p>真相就在眼前那咫尺的距离</p>
-<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
-<p>哭泣哀悼愤怒怨恨的伤悲</p>
-<p>反复地写入它记忆的终点</p>
-<p>自由是否可有也可无</p>
-<p>Ah-未来本应该有无限的道路</p>
-<p>宿命却催促踏上征途</p>
-<p>他们命运有如罗盘指向同个地方</p>
-<p>那究竟是谁的悲愿又是谁的梦想</p>
-<p>怨恨交织愤怒呐喊撕裂着心脏</p>
-<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
-<p>展开翅膀向着天际直冲而上</p>
-<p>恶魔在你耳边他奸诈地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>在天空那段存在着怎样的命运</p>
-<p>像是灯火般童年被囚禁的心</p>
-<p>如今火焰燃烧着真相与过往</p>
-<p>照亮那片尸体骸骨的前方</p>
-<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
-<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
-<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
-<p>每个步伐就承载了更多的梦</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>那黑暗之后存在着怎样的命运</p>
-<p>童年诅咒如今不再迂阔空虚</p>
-<p>何时才能实现那寄予的愿望</p>
-<p>就在跨过尸体骸骨的前方</p>
-<p>红莲的箭矢疾风呼啸而去</p>
-<p>散落满天的羽翼</p>
-<p>心脏就算撕裂贲张</p>
-<p>Requiem也不需要高声歌唱</p>
-<p>太阳在灵魂消逝西沉之前都不会落下</p>
-<p>勇敢的向前进吧</p>
-<p>向着波涛的彼方</p>
-<p>(END)</p>
-]]></content>
-      <categories>
-        <category>摸鱼</category>
-      </categories>
-      <tags>
-        <tag>摸鱼</tag>
       </tags>
   </entry>
   <entry>

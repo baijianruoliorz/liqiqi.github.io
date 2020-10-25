@@ -1,6 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Grpc系列学习(一)</title>
+    <url>/posts/57842/</url>
+    <content><![CDATA[<p>##Grpc系列学习(一)</p>
+<p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
+<h3 id="序"><a href="#序" class="headerlink" title="序"></a>序</h3><p>刚开始学习Go的时候就想认识Go有没有类似与SpringCloud的分布式框架,也是那个时候得知了Grpc.说来惭愧,对Grpc的认识也仅仅停留在:<strong>我知道有这么个东西,但是我不会用</strong>.因为准备写一系列博客,来开始重新拾起这个分布式框架.</p>
+<p><del>hadoop:应该是鸽的差不多了,主要是学着学着突然没兴趣继续往下了解了,正巧这两天有写Go的手感</del>.</p>
+<p><del>话说哪个啥实验班还要专门开课程,好想翘</del></p>
+<h4 id="Start"><a href="#Start" class="headerlink" title="Start:"></a>Start:</h4><p>Grac官网上的定义是:<strong>A high-performance, open source universal RPC framework.</strong></p>
+<p>我们简单理解成一个高性能分布式RPC框架,当然我的技术博客不会出现太多与代码无关的东西.所以不再详细介绍RPC是啥玩意.</p>
+<blockquote>
+<p>gRPC is a modern open source high performance RPC framework that can run in any environment. It can efficiently connect services in and across data centers with pluggable support for load balancing, tracing, health checking and authentication. It is also applicable in last mile of distributed computing to connect devices, mobile applications and browsers to backend services.</p>
+</blockquote>
+<p>上段内容来自<a href="https://grpc.io/" target="_blank" rel="noopener">官网</a> ,Grpc是跨语言的.官网上同给出了其他语言的示例学习<del>真的太多语言了</del></p>
+<h4 id="做个比较"><a href="#做个比较" class="headerlink" title="做个比较"></a>做个比较</h4><p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021140944.png"  alt=""></p>
+<p>(真的不是来黑grpc的)</p>
+<h4 id="Protobuf"><a href="#Protobuf" class="headerlink" title="Protobuf"></a>Protobuf</h4><p>Protocol Buffers 是一种与语言、平台无关，可扩展的序列化结构化数据的方法，常用于通信协议，数据存储等等。相较于 JSON、XML，它更小、更快、更简单，因此也更受开发人员的青眯</p>
+<p>语法我略了,<del>因为我自己也不太会</del></p>
+<p>这个是grpc必须的定义文件.</p>
+<h4 id="Get-the-example-code"><a href="#Get-the-example-code" class="headerlink" title="Get the example code"></a>Get the example code</h4><p>The example code is part of the <a href="https://github.com/grpc/grpc-go" target="_blank" rel="noopener">grpc-go</a> repo.</p>
+<p><a href="https://github.com/grpc/grpc-go/archive/master.zip" target="_blank" rel="noopener">Download the repo as a zip file</a> and unzip it, or clone the repo:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/grpc/grpc-go</span><br></pre></td></tr></table></figure>
+
+<p>亲测 git clone速度较慢.建议直接点链接下载.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021143519.jpg"  alt=""></p>
+<p>这里已经把全部源码clone下来了,照着官方文档跑个Hello Grpc.</p>
+<p>server端:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go run greeter_server&#x2F;main.go</span><br></pre></td></tr></table></figure>
+
+<p>client端:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go run greeter_client&#x2F;main.go</span><br></pre></td></tr></table></figure>
+
+<p>这里分别启动了server端和client端的服务,client端发出Hello world </p>
+<p>server接收.</p>
+<p>记得开两个控制台</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021144646.jpg"  alt=""></p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021144638.jpg"  alt=""></p>
+<p>Congratulations! You’ve just run a client-server application with gRPC.</p>
+<p>接下来我们自己使用Grpc以及protoc来编写一个server和client用来互相通信.</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go get -u google.golang.org&#x2F;grpc</span><br></pre></td></tr></table></figure>
+
+<p>protoc windows怎么下载自己查一下,我下太久了…</p>
+<p>总之运行以下命令能看到正常输出就行.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021145235.png"  alt=""></p>
+<p>protoc plugin可以用goland marketplace下载.</p>
+<p>proto文件:</p>
+<figure class="highlight protobuf"><table><tr><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line">​</span><br><span class="line"><span class="keyword">package</span> proto;</span><br><span class="line">​</span><br><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">SearchService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> Search(SearchRequest) <span class="keyword">returns</span> (SearchResponse) &#123;&#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function">​</span></span><br><span class="line"><span class="function">message SearchRequest &#123;</span></span><br><span class="line"><span class="function">    string request = 1</span>;</span><br><span class="line">&#125;</span><br><span class="line">​</span><br><span class="line"><span class="class"><span class="keyword">message</span> <span class="title">SearchResponse</span> </span>&#123;</span><br><span class="line">    <span class="built_in">string</span> response = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>生成</strong>:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">protoc --go_out&#x3D;plugins&#x3D;grpc:. *.proto</span><br></pre></td></tr></table></figure>
+
+<p>我们定义的 proto 文件是涉及了 RPC 服务的，而默认是不会生成 RPC 代码的，因此需要给出 <code>plugins</code> 参数传递给 <code>protoc-gen-go</code>，告诉它，请支持 RPC（这里指定了 gRPC）</p>
+<p>–go_out=.：设置 Go 代码输出的目录</p>
+<p>该指令会加载 protoc-gen-go 插件达到生成 Go 代码的目的，生成的文件以 .pb.go 为文件后缀</p>
+<p>: （冒号）</p>
+<p>冒号充当分隔符的作用，后跟所需要的参数集。如果这处不涉及 RPC，命令可简化为：</p>
+<p>执行命令后可以得到 .pb.go文件:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> SearchRequest <span class="keyword">struct</span> &#123;</span><br><span class="line">    Request              <span class="keyword">string</span>   <span class="string">`protobuf:"bytes,1,opt,name=request" json:"request,omitempty"`</span></span><br><span class="line">    XXX_NoUnkeyedLiteral <span class="keyword">struct</span>&#123;&#125; <span class="string">`json:"-"`</span></span><br><span class="line">    XXX_unrecognized     []<span class="keyword">byte</span>   <span class="string">`json:"-"`</span></span><br><span class="line">    XXX_sizecache        <span class="keyword">int32</span>    <span class="string">`json:"-"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *SearchRequest)</span> <span class="title">Reset</span><span class="params">()</span></span>         &#123; *m = SearchRequest&#123;&#125; &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *SearchRequest)</span> <span class="title">String</span><span class="params">()</span> <span class="title">string</span></span> &#123; <span class="keyword">return</span> proto.CompactTextString(m) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(*SearchRequest)</span> <span class="title">ProtoMessage</span><span class="params">()</span></span>    &#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(*SearchRequest)</span> <span class="title">Descriptor</span><span class="params">()</span> <span class="params">([]<span class="keyword">byte</span>, []<span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> fileDescriptor_search_8b45f79ee13ff6a3, []<span class="keyword">int</span>&#123;<span class="number">0</span>&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *SearchRequest)</span> <span class="title">GetRequest</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> m != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> m.Request</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="server"><a href="#server" class="headerlink" title="server:"></a>server:</h4><figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"context"</span></span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">    <span class="string">"net"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"google.golang.org/grpc"</span></span><br><span class="line"></span><br><span class="line">    pb <span class="string">"github.com/EDDYCJY/go-grpc-example/proto"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> SearchService <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SearchService)</span> <span class="title">Search</span><span class="params">(ctx context.Context, r *pb.SearchRequest)</span> <span class="params">(*pb.SearchResponse, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;pb.SearchResponse&#123;Response: r.GetRequest() + <span class="string">" Server"</span>&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> PORT = <span class="string">"9001"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    server := grpc.NewServer()</span><br><span class="line">    pb.RegisterSearchServiceServer(server, &amp;SearchService&#123;&#125;)</span><br><span class="line"></span><br><span class="line">    lis, err := net.Listen(<span class="string">"tcp"</span>, <span class="string">":"</span>+PORT)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatalf(<span class="string">"net.Listen err: %v"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    server.Serve(lis)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>创建 gRPC Server 对象，你可以理解为它是 Server 端的抽象对象</li>
+<li>将 SearchService（其包含需要被调用的服务端接口）注册到 gRPC Server 的内部注册中心。这样可以在接受到请求时，通过内部的服务发现，发现该服务端接口并转接进行逻辑处理</li>
+<li>创建 Listen，监听 TCP 端口</li>
+<li>gRPC Server 开始 lis.Accept，直到 Stop 或 GracefulStop</li>
+</ul>
+<h4 id="client"><a href="#client" class="headerlink" title="client:"></a>client:</h4><figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"context"</span></span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"google.golang.org/grpc"</span></span><br><span class="line"></span><br><span class="line">    pb <span class="string">"github.com/EDDYCJY/go-grpc-example/proto"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> PORT = <span class="string">"9001"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    conn, err := grpc.Dial(<span class="string">":"</span>+PORT, grpc.WithInsecure())</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatalf(<span class="string">"grpc.Dial err: %v"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">    client := pb.NewSearchServiceClient(conn)</span><br><span class="line">    resp, err := client.Search(context.Background(), &amp;pb.SearchRequest&#123;</span><br><span class="line">        Request: <span class="string">"gRPC"</span>,</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatalf(<span class="string">"client.Search err: %v"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    log.Printf(<span class="string">"resp: %s"</span>, resp.GetResponse())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>创建与给定目标（服务端）的连接交互</li>
+<li>创建 SearchService 的客户端对象</li>
+<li>发送 RPC 请求，等待同步响应，得到回调后返回响应结果</li>
+<li>输出响应结果</li>
+</ul>
+<h4 id="启动"><a href="#启动" class="headerlink" title="启动:"></a>启动:</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go run server.go</span><br><span class="line">go run client.go</span><br></pre></td></tr></table></figure>
+
+<p>输出:resp: gRPC Server</p>
+<p>即可完成一次简单的通信!</p>
+<p>@copyright ————baijianruoliorz@Github——————————–</p>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>Grpc</tag>
+        <tag>blog</tag>
+        <tag>分布式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Grpc系列学习(二)</title>
     <url>/posts/8534/</url>
     <content><![CDATA[<p>Grpc系列学习(二)</p>
@@ -109,96 +199,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Grpc系列学习(一)</title>
-    <url>/posts/57842/</url>
-    <content><![CDATA[<p>##Grpc系列学习(一)</p>
-<p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
-<h3 id="序"><a href="#序" class="headerlink" title="序"></a>序</h3><p>刚开始学习Go的时候就想认识Go有没有类似与SpringCloud的分布式框架,也是那个时候得知了Grpc.说来惭愧,对Grpc的认识也仅仅停留在:<strong>我知道有这么个东西,但是我不会用</strong>.因为准备写一系列博客,来开始重新拾起这个分布式框架.</p>
-<p><del>hadoop:应该是鸽的差不多了,主要是学着学着突然没兴趣继续往下了解了,正巧这两天有写Go的手感</del>.</p>
-<p><del>话说哪个啥实验班还要专门开课程,好想翘</del></p>
-<h4 id="Start"><a href="#Start" class="headerlink" title="Start:"></a>Start:</h4><p>Grac官网上的定义是:<strong>A high-performance, open source universal RPC framework.</strong></p>
-<p>我们简单理解成一个高性能分布式RPC框架,当然我的技术博客不会出现太多与代码无关的东西.所以不再详细介绍RPC是啥玩意.</p>
-<blockquote>
-<p>gRPC is a modern open source high performance RPC framework that can run in any environment. It can efficiently connect services in and across data centers with pluggable support for load balancing, tracing, health checking and authentication. It is also applicable in last mile of distributed computing to connect devices, mobile applications and browsers to backend services.</p>
-</blockquote>
-<p>上段内容来自<a href="https://grpc.io/" target="_blank" rel="noopener">官网</a> ,Grpc是跨语言的.官网上同给出了其他语言的示例学习<del>真的太多语言了</del></p>
-<h4 id="做个比较"><a href="#做个比较" class="headerlink" title="做个比较"></a>做个比较</h4><p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021140944.png"  alt=""></p>
-<p>(真的不是来黑grpc的)</p>
-<h4 id="Protobuf"><a href="#Protobuf" class="headerlink" title="Protobuf"></a>Protobuf</h4><p>Protocol Buffers 是一种与语言、平台无关，可扩展的序列化结构化数据的方法，常用于通信协议，数据存储等等。相较于 JSON、XML，它更小、更快、更简单，因此也更受开发人员的青眯</p>
-<p>语法我略了,<del>因为我自己也不太会</del></p>
-<p>这个是grpc必须的定义文件.</p>
-<h4 id="Get-the-example-code"><a href="#Get-the-example-code" class="headerlink" title="Get the example code"></a>Get the example code</h4><p>The example code is part of the <a href="https://github.com/grpc/grpc-go" target="_blank" rel="noopener">grpc-go</a> repo.</p>
-<p><a href="https://github.com/grpc/grpc-go/archive/master.zip" target="_blank" rel="noopener">Download the repo as a zip file</a> and unzip it, or clone the repo:</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/grpc/grpc-go</span><br></pre></td></tr></table></figure>
-
-<p>亲测 git clone速度较慢.建议直接点链接下载.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021143519.jpg"  alt=""></p>
-<p>这里已经把全部源码clone下来了,照着官方文档跑个Hello Grpc.</p>
-<p>server端:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go run greeter_server&#x2F;main.go</span><br></pre></td></tr></table></figure>
-
-<p>client端:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go run greeter_client&#x2F;main.go</span><br></pre></td></tr></table></figure>
-
-<p>这里分别启动了server端和client端的服务,client端发出Hello world </p>
-<p>server接收.</p>
-<p>记得开两个控制台</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021144646.jpg"  alt=""></p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021144638.jpg"  alt=""></p>
-<p>Congratulations! You’ve just run a client-server application with gRPC.</p>
-<p>接下来我们自己使用Grpc以及protoc来编写一个server和client用来互相通信.</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go get -u google.golang.org&#x2F;grpc</span><br></pre></td></tr></table></figure>
-
-<p>protoc windows怎么下载自己查一下,我下太久了…</p>
-<p>总之运行以下命令能看到正常输出就行.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720201021145235.png"  alt=""></p>
-<p>protoc plugin可以用goland marketplace下载.</p>
-<p>proto文件:</p>
-<figure class="highlight protobuf"><table><tr><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line">​</span><br><span class="line"><span class="keyword">package</span> proto;</span><br><span class="line">​</span><br><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">SearchService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> Search(SearchRequest) <span class="keyword">returns</span> (SearchResponse) &#123;&#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function">​</span></span><br><span class="line"><span class="function">message SearchRequest &#123;</span></span><br><span class="line"><span class="function">    string request = 1</span>;</span><br><span class="line">&#125;</span><br><span class="line">​</span><br><span class="line"><span class="class"><span class="keyword">message</span> <span class="title">SearchResponse</span> </span>&#123;</span><br><span class="line">    <span class="built_in">string</span> response = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>生成</strong>:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">protoc --go_out&#x3D;plugins&#x3D;grpc:. *.proto</span><br></pre></td></tr></table></figure>
-
-<p>我们定义的 proto 文件是涉及了 RPC 服务的，而默认是不会生成 RPC 代码的，因此需要给出 <code>plugins</code> 参数传递给 <code>protoc-gen-go</code>，告诉它，请支持 RPC（这里指定了 gRPC）</p>
-<p>–go_out=.：设置 Go 代码输出的目录</p>
-<p>该指令会加载 protoc-gen-go 插件达到生成 Go 代码的目的，生成的文件以 .pb.go 为文件后缀</p>
-<p>: （冒号）</p>
-<p>冒号充当分隔符的作用，后跟所需要的参数集。如果这处不涉及 RPC，命令可简化为：</p>
-<p>执行命令后可以得到 .pb.go文件:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> SearchRequest <span class="keyword">struct</span> &#123;</span><br><span class="line">    Request              <span class="keyword">string</span>   <span class="string">`protobuf:"bytes,1,opt,name=request" json:"request,omitempty"`</span></span><br><span class="line">    XXX_NoUnkeyedLiteral <span class="keyword">struct</span>&#123;&#125; <span class="string">`json:"-"`</span></span><br><span class="line">    XXX_unrecognized     []<span class="keyword">byte</span>   <span class="string">`json:"-"`</span></span><br><span class="line">    XXX_sizecache        <span class="keyword">int32</span>    <span class="string">`json:"-"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *SearchRequest)</span> <span class="title">Reset</span><span class="params">()</span></span>         &#123; *m = SearchRequest&#123;&#125; &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *SearchRequest)</span> <span class="title">String</span><span class="params">()</span> <span class="title">string</span></span> &#123; <span class="keyword">return</span> proto.CompactTextString(m) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(*SearchRequest)</span> <span class="title">ProtoMessage</span><span class="params">()</span></span>    &#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(*SearchRequest)</span> <span class="title">Descriptor</span><span class="params">()</span> <span class="params">([]<span class="keyword">byte</span>, []<span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> fileDescriptor_search_8b45f79ee13ff6a3, []<span class="keyword">int</span>&#123;<span class="number">0</span>&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *SearchRequest)</span> <span class="title">GetRequest</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> m != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> m.Request</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="server"><a href="#server" class="headerlink" title="server:"></a>server:</h4><figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"context"</span></span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">    <span class="string">"net"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"google.golang.org/grpc"</span></span><br><span class="line"></span><br><span class="line">    pb <span class="string">"github.com/EDDYCJY/go-grpc-example/proto"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> SearchService <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SearchService)</span> <span class="title">Search</span><span class="params">(ctx context.Context, r *pb.SearchRequest)</span> <span class="params">(*pb.SearchResponse, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;pb.SearchResponse&#123;Response: r.GetRequest() + <span class="string">" Server"</span>&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> PORT = <span class="string">"9001"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    server := grpc.NewServer()</span><br><span class="line">    pb.RegisterSearchServiceServer(server, &amp;SearchService&#123;&#125;)</span><br><span class="line"></span><br><span class="line">    lis, err := net.Listen(<span class="string">"tcp"</span>, <span class="string">":"</span>+PORT)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatalf(<span class="string">"net.Listen err: %v"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    server.Serve(lis)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>创建 gRPC Server 对象，你可以理解为它是 Server 端的抽象对象</li>
-<li>将 SearchService（其包含需要被调用的服务端接口）注册到 gRPC Server 的内部注册中心。这样可以在接受到请求时，通过内部的服务发现，发现该服务端接口并转接进行逻辑处理</li>
-<li>创建 Listen，监听 TCP 端口</li>
-<li>gRPC Server 开始 lis.Accept，直到 Stop 或 GracefulStop</li>
-</ul>
-<h4 id="client"><a href="#client" class="headerlink" title="client:"></a>client:</h4><figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"context"</span></span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"google.golang.org/grpc"</span></span><br><span class="line"></span><br><span class="line">    pb <span class="string">"github.com/EDDYCJY/go-grpc-example/proto"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> PORT = <span class="string">"9001"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    conn, err := grpc.Dial(<span class="string">":"</span>+PORT, grpc.WithInsecure())</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatalf(<span class="string">"grpc.Dial err: %v"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">    client := pb.NewSearchServiceClient(conn)</span><br><span class="line">    resp, err := client.Search(context.Background(), &amp;pb.SearchRequest&#123;</span><br><span class="line">        Request: <span class="string">"gRPC"</span>,</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatalf(<span class="string">"client.Search err: %v"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    log.Printf(<span class="string">"resp: %s"</span>, resp.GetResponse())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>创建与给定目标（服务端）的连接交互</li>
-<li>创建 SearchService 的客户端对象</li>
-<li>发送 RPC 请求，等待同步响应，得到回调后返回响应结果</li>
-<li>输出响应结果</li>
-</ul>
-<h4 id="启动"><a href="#启动" class="headerlink" title="启动:"></a>启动:</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">go run server.go</span><br><span class="line">go run client.go</span><br></pre></td></tr></table></figure>
-
-<p>输出:resp: gRPC Server</p>
-<p>即可完成一次简单的通信!</p>
-<p>@copyright ————baijianruoliorz@Github——————————–</p>
-]]></content>
-      <categories>
-        <category>分布式</category>
-      </categories>
-      <tags>
-        <tag>Grpc</tag>
-        <tag>blog</tag>
-        <tag>分布式</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Stop Worship others</title>
     <url>/posts/14526/</url>
     <content><![CDATA[<h6 id="Stop-Worship-others"><a href="#Stop-Worship-others" class="headerlink" title="Stop Worship others"></a>Stop Worship others</h6><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/"  alt="img"></p>
@@ -255,6 +255,32 @@
       </categories>
       <tags>
         <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/posts/520520/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>总结</tag>
+        <tag>平淡の日常</tag>
       </tags>
   </entry>
   <entry>
@@ -354,32 +380,6 @@
         <tag>blog</tag>
         <tag>分布式</tag>
         <tag>MIT6.824</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/posts/520520/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>夜谈</category>
-      </categories>
-      <tags>
-        <tag>blog</tag>
-        <tag>总结</tag>
-        <tag>平淡の日常</tag>
       </tags>
   </entry>
   <entry>

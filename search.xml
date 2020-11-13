@@ -1,105 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>MIT6.824 LAB1</title>
-    <url>/posts/60658/</url>
-    <content><![CDATA[<h3 id="mit6-824-系列学习"><a href="#mit6-824-系列学习" class="headerlink" title="mit6.824 系列学习"></a>mit6.824 系列学习</h3><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
-<p>首先贴一下课程官网,方便大家查阅.</p>
-<p><a href="https://pdos.csail.mit.edu/6.824/schedule.html" target="_blank" rel="noopener">mit6.824</a></p>
-<h5 id="lab1实现"><a href="#lab1实现" class="headerlink" title="lab1实现:"></a>lab1实现:</h5><p>首先 在 <a href="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html" target="_blank" rel="noopener">这里</a>看lab1的要求,我们先执行几个官网给出的命令搭建实验环境</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ git clone git:&#x2F;&#x2F;g.csail.mit.edu&#x2F;6.824-golabs-2020 6.824</span><br><span class="line">$ cd 6.824</span><br><span class="line">$ ls</span><br><span class="line">Makefile src</span><br><span class="line">$</span><br></pre></td></tr></table></figure>
-
-<p>这样就能直接拉取到所需的代码</p>
-<p>大致目录如下:</p>
-<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/d53343b1-94ed-4137-afe8-46c52633aaa5.png"  alt=""></p>
-<p>然后继续看官网:</p>
-<blockquote>
-<p>We supply you with a simple sequential mapreduce implementation in src/main/mrsequential.go. It runs the maps and reduces one at a time, in a single process. We also provide you with a couple of MapReduce applications: word-count in mrapps/wc.go, and a text indexer in mrapps/indexer.go. You can run word count sequentially as follows:</p>
-</blockquote>
-<p>大致是提供一个MapReduce application demo 你可以照着run一下.</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ cd ~&#x2F;6.824</span><br><span class="line">$ cd src&#x2F;main</span><br><span class="line">$ go build -buildmode&#x3D;plugin ..&#x2F;mrapps&#x2F;wc.go</span><br><span class="line">$ rm mr-out*</span><br><span class="line">$ go run mrsequential.go wc.so pg*.txt</span><br><span class="line">$ more mr-out-0</span><br><span class="line">A 509</span><br><span class="line">ABOUT 2</span><br><span class="line">ACT 8</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>于是我在goland试了一下:</p>
-<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/f58c702b-0807-4fd6-8d63-c8f6224b5ccf.png"  alt=""></p>
-<p>报错贴了Google:原来是Windows环境做不了这个lab啊</p>
-<p>稍加思索—&gt;发现异常–&gt;<del>放弃实验</del>跑去linux继续苟</p>
-<p>然后就会输出它给你的文本的单词统计(这也是我做的第一个hadoop框架有用的demo.hadoop内核代码也是mapreduce.</p>
-<p>clone出来的仓库中只有一个文件夹是和第一个lab mapreduce相关的</p>
-<p>mr文件夹!芜湖</p>
-<h5 id="关于mapreduce系统框架"><a href="#关于mapreduce系统框架" class="headerlink" title="关于mapreduce系统框架:"></a>关于mapreduce系统框架:</h5><p>MapReduce系统是由一个master进程和多个worker进程组成，master和worker之间是通过RPC(Remote Procedure Call)进行通信，master进程负责给多个worker分配任务，记录任务完成状态，并且需要处理worker奔溃或者超时运行等问题，worker需要处理相应的任务，处理完毕发送报告给master，再请求下一个任务。</p>
-<p>master结构:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> Flag <span class="keyword">struct</span> &#123;</span><br><span class="line">	processing <span class="keyword">bool</span></span><br><span class="line">	finished   <span class="keyword">bool</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Master <span class="keyword">struct</span> &#123;</span><br><span class="line">	FileNames      []<span class="keyword">string</span></span><br><span class="line">	MapFlags       []Flag</span><br><span class="line">	ReduceFlags    []Flag</span><br><span class="line">	MapTaskCnts    []<span class="keyword">int</span></span><br><span class="line">	ReduceTaskCnts []<span class="keyword">int</span></span><br><span class="line">	MapAllDone     <span class="keyword">bool</span></span><br><span class="line">	ReduceALLDone  <span class="keyword">bool</span></span><br><span class="line">	MapNum         <span class="keyword">int</span></span><br><span class="line">	ReduceNum      <span class="keyword">int</span></span><br><span class="line">	Mut            sync.Mutex</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>FileNames : pg*.txt这八个文件名</li>
-<li>MapFlags :对应的状态</li>
-<li>ReduceFlags:同状态</li>
-<li>MapTaskCnts:记录map当前的任务序列号,如果map任务发生timeout,HandleTimeout这个函数对map任务进行的processing标志清0,重新分配,当前任务序列号在上个任务号中加1,如果之前发生timeout的任务来报告完成,由于小于当前任务号,HandleWorkerReport函数可以无需记录,直接退出.</li>
-<li>ReduceTaskcnts:同上</li>
-<li>MapAllDone:任务全部完成,变成true</li>
-<li>ReduceAllDone:Reduce任务全部完成为true</li>
-<li>MapNum:Map任务数</li>
-<li>ReduceNum:任务数</li>
-<li>Mut:排它锁</li>
-</ul>
-<p>Worker结构:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> TaskState <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	MapState    TaskState = <span class="number">0</span></span><br><span class="line">	ReduceState TaskState = <span class="number">1</span></span><br><span class="line">	StopState   TaskState = <span class="number">2</span></span><br><span class="line">	WaitState   TaskState = <span class="number">3</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> WorkerTask <span class="keyword">struct</span> &#123;</span><br><span class="line">	MapID          <span class="keyword">int</span></span><br><span class="line">	ReduceID       <span class="keyword">int</span></span><br><span class="line">	ReduceNum      <span class="keyword">int</span></span><br><span class="line">	MapNum         <span class="keyword">int</span></span><br><span class="line">	MapTaskCnt     <span class="keyword">int</span></span><br><span class="line">	ReduceTaskCnt  <span class="keyword">int</span></span><br><span class="line">	State          TaskState</span><br><span class="line">	FileName       <span class="keyword">string</span></span><br><span class="line">	MapFunction    <span class="function"><span class="keyword">func</span><span class="params">(<span class="keyword">string</span>, <span class="keyword">string</span>)</span> []<span class="title">KeyValue</span></span></span><br><span class="line">	ReduceFunction <span class="function"><span class="keyword">func</span><span class="params">(<span class="keyword">string</span>, []<span class="keyword">string</span>)</span> <span class="title">string</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>MapID和ReduceID：Map任务ID和Reduce任务ID</li>
-<li>MapNum和ReduceNum：Map的任务总数和Reduce任务总数</li>
-<li>MapTaskCnt和ReduceTaskCnt：Map任务序列号和Reduce序列号<br>State：任务有四种状态，分别是MapState，ReduceState，StopState和WaitState，MapState表示当前需要处理Map任务，ReduceState表示当前需要处理Reduce任务，WaitState表示当前没有需要处理的任务，开始睡眠等待，StopState代表任务已全部完成，可以退出。</li>
-<li>FileName：表示Map任务需要的文件名</li>
-<li>MapFunction和ReduceFunction：任务根据State需要进行的Map函数或者Reduce函数</li>
-</ul>
-<p>Master接口:</p>
-<p>创建Master:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeMaster</span><span class="params">(files []<span class="keyword">string</span>, nReduce <span class="keyword">int</span>)</span> *<span class="title">Master</span></span> &#123;</span><br><span class="line">	m := Master&#123;FileNames: files,</span><br><span class="line">		MapFlags:       <span class="built_in">make</span>([]Flag, <span class="built_in">len</span>(files), <span class="built_in">len</span>(files)),</span><br><span class="line">		ReduceFlags:    <span class="built_in">make</span>([]Flag, nReduce, nReduce),</span><br><span class="line">		MapNum:         <span class="built_in">len</span>(files),</span><br><span class="line">		ReduceNum:      nReduce,</span><br><span class="line">		MapAllDone:     <span class="literal">false</span>,</span><br><span class="line">		ReduceALLDone:  <span class="literal">false</span>,</span><br><span class="line">		MapTaskCnts:    <span class="built_in">make</span>([]<span class="keyword">int</span>, <span class="built_in">len</span>(files)),</span><br><span class="line">		ReduceTaskCnts: <span class="built_in">make</span>([]<span class="keyword">int</span>, nReduce),</span><br><span class="line">	&#125;</span><br><span class="line">	m.server()</span><br><span class="line">	args, reply := NoArgs&#123;&#125;, NoReply&#123;&#125;</span><br><span class="line">	<span class="keyword">go</span> m.HandleTimeOut(&amp;args, &amp;reply)</span><br><span class="line">	<span class="keyword">return</span> &amp;m</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>生成worker task:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Master)</span> <span class="title">CreateWorkerTask</span><span class="params">(args *NoArgs, workerTask *WorkerTask)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	m.Mut.Lock()</span><br><span class="line">	<span class="keyword">defer</span> m.Mut.Unlock()</span><br><span class="line">	<span class="keyword">if</span> !m.MapAllDone &#123;</span><br><span class="line">		<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.MapNum; idx++ &#123;</span><br><span class="line">			<span class="keyword">if</span> !m.MapFlags[idx].processing &amp;&amp; !m.MapFlags[idx].finished &#123;</span><br><span class="line">				workerTask.ReduceNum = m.ReduceNum</span><br><span class="line">				workerTask.MapNum = m.MapNum</span><br><span class="line">				workerTask.State = MapState</span><br><span class="line">				workerTask.MapID = idx</span><br><span class="line">				workerTask.FileName = m.FileNames[idx]</span><br><span class="line">				m.MapTaskCnts[idx]++</span><br><span class="line">				workerTask.MapTaskCnt = m.MapTaskCnts[idx]</span><br><span class="line">				m.MapFlags[idx].processing = <span class="literal">true</span></span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		workerTask.State = WaitState</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !m.ReduceALLDone &#123;</span><br><span class="line">		<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.ReduceNum; idx++ &#123;</span><br><span class="line">			<span class="keyword">if</span> !m.ReduceFlags[idx].processing &amp;&amp; !m.ReduceFlags[idx].finished &#123;</span><br><span class="line">				workerTask.State = ReduceState</span><br><span class="line">				workerTask.ReduceNum = m.ReduceNum</span><br><span class="line">				workerTask.MapNum = m.MapNum</span><br><span class="line">				workerTask.ReduceID = idx</span><br><span class="line">				m.ReduceTaskCnts[idx]++</span><br><span class="line">				workerTask.ReduceTaskCnt = m.ReduceTaskCnts[idx]</span><br><span class="line">				m.ReduceFlags[idx].processing = <span class="literal">true</span></span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		workerTask.State = WaitState</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	workerTask.State = StopState</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>函数首先会获得互斥锁，然后判断MapAllDone是否为false，为false进入循环遍历，如果某个任务的processing状态和finished状态都为false，说明这个任务可以需要被处理，可以分配，讲配置参数写入到输出参数中，并标志master中当前任务的状态processing为true以及序列号。如果没有任务需要处理，说明map有些任务正在处理，有些已完成。进入等待阶段。判断ReduceALLDone与前面类似。不加以叙述。</p>
-<p>处理worker report</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Master)</span> <span class="title">HandleWorkerReport</span><span class="params">(wr *WorkerReportArgs, task *NoReply)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	m.Mut.Lock()</span><br><span class="line">	<span class="keyword">defer</span> m.Mut.Unlock()</span><br><span class="line">	<span class="keyword">if</span> wr.IsSuccess &#123;</span><br><span class="line">		<span class="keyword">if</span> wr.State == MapState &#123;</span><br><span class="line">			<span class="keyword">if</span> wr.MapTaskCnt == m.MapTaskCnts[wr.MapID] &#123;</span><br><span class="line">				m.MapFlags[wr.MapID].finished = <span class="literal">true</span></span><br><span class="line">				m.MapFlags[wr.MapID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> wr.ReduceTaskCnt == m.ReduceTaskCnts[wr.ReduceID] &#123;</span><br><span class="line">				m.ReduceFlags[wr.ReduceID].finished = <span class="literal">true</span></span><br><span class="line">				m.ReduceFlags[wr.ReduceID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> wr.State == MapState &#123;</span><br><span class="line">			<span class="keyword">if</span> m.MapFlags[wr.MapID].finished == <span class="literal">false</span> &#123;</span><br><span class="line">				m.MapFlags[wr.MapID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> m.ReduceFlags[wr.ReduceID].finished == <span class="literal">false</span> &#123;</span><br><span class="line">				m.ReduceFlags[wr.ReduceID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> id := <span class="number">0</span>; id &lt; m.MapNum; id++ &#123;</span><br><span class="line">		<span class="keyword">if</span> !m.MapFlags[id].finished &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> id == m.MapNum<span class="number">-1</span> &#123;</span><br><span class="line">				m.MapAllDone = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> id := <span class="number">0</span>; id &lt; m.ReduceNum; id++ &#123;</span><br><span class="line">		<span class="keyword">if</span> !m.ReduceFlags[id].finished &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> id == m.ReduceNum<span class="number">-1</span> &#123;</span><br><span class="line">				m.ReduceALLDone = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>输入参数有一个标示位,表示任务是否成功,成功判断任务状态以及序列号,如果序列号与master对应上,可以表明这个任务成功,如果对不上,说明这个是个timeout任务,无需处理.如果任务标志位为false,进入错误处理,判断任务是否完成,因为可能是timeout任务标志位为false，未完成让processing置0，CreateWorkerTask可以重新分配。最后判断Map任务和Reduce任务是否相应全部完成，全部完成可以设置MapALLDone和ReduceALLDone为true。</p>
-<p>处理timeout:</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Master)</span> <span class="title">HandleTimeOut</span><span class="params">(args *NoArgs, reply *NoReply)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		m.Mut.Lock()</span><br><span class="line">		<span class="keyword">if</span> m.MapAllDone &amp;&amp; m.ReduceALLDone &#123;</span><br><span class="line">			m.Mut.Unlock()</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		time.Sleep(<span class="number">30</span> * time.Millisecond)</span><br><span class="line">		<span class="keyword">if</span> !m.MapAllDone &#123;</span><br><span class="line">			<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.MapNum; idx++ &#123;</span><br><span class="line">				<span class="keyword">if</span> m.MapFlags[idx].finished == <span class="literal">false</span> &#123;</span><br><span class="line">					m.MapFlags[idx].processing = <span class="literal">false</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.ReduceNum; idx++ &#123;</span><br><span class="line">				<span class="keyword">if</span> m.ReduceFlags[idx].finished == <span class="literal">false</span> &#123;</span><br><span class="line">					m.ReduceFlags[idx].processing = <span class="literal">false</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		m.Mut.Unlock()</span><br><span class="line">		time.Sleep(<span class="number">2000</span> * time.Millisecond)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>处理timeout很简单,先判断MapAllDone和ReduceAllDone是不是都为true,都为true都退出即可.然后判断m任务有无完成,没有完成任务的processing清为0,就可以让createWorkerTask重新分配没有完成的任务.最后释放锁,睡眠2S,可以看到Handletimeout函数是以2S为间隔,2s没有完成任务的视为timeout.</p>
-<p>Work接口</p>
-<p>生成Work</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// main/mrworker.go calls this function.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Worker</span><span class="params">(mapf <span class="keyword">func</span>(<span class="keyword">string</span>, <span class="keyword">string</span>)</span> []<span class="title">KeyValue</span>,</span></span><br><span class="line">	reducef <span class="function"><span class="keyword">func</span><span class="params">(<span class="keyword">string</span>, []<span class="keyword">string</span>)</span> <span class="title">string</span>)</span> &#123;</span><br><span class="line">	wt := WorkerTask&#123;</span><br><span class="line">		MapFunction:    mapf,</span><br><span class="line">		ReduceFunction: reducef,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		wt.GetWorkerTask()</span><br><span class="line">		<span class="keyword">if</span> wt.State == MapState &#123;</span><br><span class="line">			wt.DoMapWork()</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> wt.State == ReduceState &#123;</span><br><span class="line">			wt.DoReduceWork()</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> wt.State == StopState &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> wt.State == WaitState &#123;</span><br><span class="line">			time.Sleep(<span class="number">300</span> * time.Millisecond)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>mrworker会调用worker函数，传入map函数和reduce函数，根据函数参数创建一个worker，然后进入循环，调用GetWorkerTask函数，这个函数会调用Master.CreateWorkerTask函数，并传入两个参数，得到任务分配后，讲相应的参数和状态赋值给worker。worker就可以根据状态进入处理相应任务或者睡眠，或者退出。</p>
-<p>Map Work</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(wt *WorkerTask)</span> <span class="title">DoMapWork</span><span class="params">()</span></span> &#123;</span><br><span class="line">	file, err := os.Open(wt.FileName)</span><br><span class="line">	content, err := ioutil.ReadAll(file)</span><br><span class="line">	file.Close()</span><br><span class="line">	kvs := wt.MapFunction(wt.FileName, <span class="keyword">string</span>(content))</span><br><span class="line">	intermediate := <span class="built_in">make</span>([][]KeyValue, wt.ReduceNum, wt.ReduceNum)</span><br><span class="line">	<span class="keyword">for</span> _, kv := <span class="keyword">range</span> kvs &#123;</span><br><span class="line">		idx := ihash(kv.Key) % wt.ReduceNum</span><br><span class="line">		intermediate[idx] = <span class="built_in">append</span>(intermediate[idx], kv)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; wt.ReduceNum; idx++ &#123;</span><br><span class="line">		intermediateFileName := fmt.Sprintf(<span class="string">"mr-%d-%d"</span>, wt.MapID, idx)</span><br><span class="line">		file, err = os.Create(intermediateFileName)</span><br><span class="line">		data, _ := json.Marshal(intermediate[idx])</span><br><span class="line">		_, err = file.Write(data)</span><br><span class="line">		file.Close()</span><br><span class="line">	&#125;</span><br><span class="line">	wt.ReportWorkerTask(<span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(wt *WorkerTask)</span> <span class="title">ReportWorkerTask</span><span class="params">(err error)</span></span> &#123;</span><br><span class="line">	wra := WorkerReportArgs&#123;</span><br><span class="line">		MapID:     wt.MapID,</span><br><span class="line">		ReduceID:  wt.ReduceID,</span><br><span class="line">		State:     wt.State,</span><br><span class="line">		IsSuccess: <span class="literal">true</span>,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> wt.State == MapState &#123;</span><br><span class="line">		wra.MapTaskCnt = wt.MapTaskCnt</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		wra.ReduceTaskCnt = wt.ReduceTaskCnt</span><br><span class="line">	&#125;</span><br><span class="line">	wrr := NoReply&#123;&#125;</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		wra.IsSuccess = <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line">	call(<span class="string">"Master.HandleWorkerReport"</span>, &amp;wra, &amp;wrr)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Map work就是读取相应的文件，调用MapFunction生成KeyValue对，然后根据哈希函数得到要讲当前key分配到哪一块中，总共有ReduceNum块，最后根据这么块生成对应map以及reduce块的文件。然后调用ReportWorkerTask报告成功，传入nil表示成功。ReportWorkerTask内部会调用Master.HandleWorkerReport函数来汇报这一执行结果。</p>
-<p>Reduce Work</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(wt *WorkerTask)</span> <span class="title">DoReduceWork</span><span class="params">()</span></span> &#123;</span><br><span class="line">	kvsReduce := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>][]<span class="keyword">string</span>)</span><br><span class="line">	<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; wt.MapNum; idx++ &#123;</span><br><span class="line">		filename := fmt.Sprintf(<span class="string">"mr-%d-%d"</span>, idx, wt.ReduceID)</span><br><span class="line">		file, err := os.Open(filename)</span><br><span class="line">		content, err := ioutil.ReadAll(file)</span><br><span class="line">		file.Close()</span><br><span class="line">		kvs := <span class="built_in">make</span>([]KeyValue, <span class="number">0</span>)</span><br><span class="line">		err = json.Unmarshal(content, &amp;kvs)</span><br><span class="line">		<span class="keyword">for</span> _, kv := <span class="keyword">range</span> kvs &#123;</span><br><span class="line">			_, ok := kvsReduce[kv.Key]</span><br><span class="line">			<span class="keyword">if</span> !ok &#123;</span><br><span class="line">				kvsReduce[kv.Key] = <span class="built_in">make</span>([]<span class="keyword">string</span>, <span class="number">0</span>)</span><br><span class="line">			&#125;</span><br><span class="line">			kvsReduce[kv.Key] = <span class="built_in">append</span>(kvsReduce[kv.Key], kv.Value)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	ReduceResult := <span class="built_in">make</span>([]<span class="keyword">string</span>, <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">for</span> key, val := <span class="keyword">range</span> kvsReduce &#123;</span><br><span class="line">		ReduceResult = <span class="built_in">append</span>(ReduceResult, fmt.Sprintf(<span class="string">"%v %v\n"</span>, key, wt.ReduceFunction(key, val)))</span><br><span class="line">	&#125;</span><br><span class="line">	outFileName := fmt.Sprintf(<span class="string">"mr-out-%d"</span>, wt.ReduceID)</span><br><span class="line">	err := ioutil.WriteFile(outFileName, []<span class="keyword">byte</span>(strings.Join(ReduceResult, <span class="string">""</span>)), <span class="number">0644</span>)</span><br><span class="line">	wt.ReportWorkerTask(<span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里首先读取相同块的所有文件,需要对相同key的内容聚合在一起,然后循环调用ReduceFunction得到Reduce的结果,最后生成输出.</p>
-<h5 id="END"><a href="#END" class="headerlink" title="END:"></a>END:</h5><p>到这里MapReduce实现的就差不多了,关于MapReduce,总结下来是:map对每个文件生成单词和单一数目,分在不同的区块保存,Reduce对不同区块进行统计,得到最终结果.讲这两个过程直接包装起来就是mapreduce.</p>
-<p>关于MapReduce的论文,可以阅读<a href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf" target="_blank" rel="noopener">这里</a>.</p>
-<p>当然由于是04年的论文,所以现在的翻译资源已经很丰富了(<del>正经人谁去读原版那种单词都认识合成一句话就不知道讲什么的东西呢</del>.</p>
-<p>最后放一张过test图片:</p>
-<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/c4f8429c-ca81-426e-9e07-32a5a8cc446e.png"  alt=""></p>
-<p>​                                                                                                        —MIT6.824 lab1 end</p>
-<p>​                                                                                                        ———–2020.10.11    </p>
-<p>@copyright ————baijianruoliorz@Github——————————–</p>
-]]></content>
-      <categories>
-        <category>分布式</category>
-      </categories>
-      <tags>
-        <tag>MIT6.824</tag>
-        <tag>blog</tag>
-        <tag>分布式</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Grpc系列学习(一)</title>
     <url>/posts/57842/</url>
     <content><![CDATA[<p>##Grpc系列学习(一)</p>
@@ -184,9 +85,9 @@
         <category>分布式</category>
       </categories>
       <tags>
+        <tag>Grpc</tag>
         <tag>blog</tag>
         <tag>分布式</tag>
-        <tag>Grpc</tag>
       </tags>
   </entry>
   <entry>
@@ -292,37 +193,192 @@
         <category>分布式</category>
       </categories>
       <tags>
+        <tag>Grpc</tag>
         <tag>blog</tag>
         <tag>分布式</tag>
-        <tag>Grpc</tag>
       </tags>
   </entry>
   <entry>
-    <title>Wizz工作室面基大会</title>
-    <url>/posts/37390/</url>
-    <content><![CDATA[<h3 id="Wizz工作室面基大会"><a href="#Wizz工作室面基大会" class="headerlink" title="Wizz工作室面基大会"></a>Wizz工作室面基大会</h3><p>10月16号,我参加了Wizz的面基大会.</p>
-<p>有一说一,之前对这种”<del>ST</del>式”讨论向来是抵制的,不过从今晚来看,感觉的确有很大的作用.</p>
-<p>首先是17级转正阿里的TY学长，讲了自己加入为之三年来的成长。<del>阿里真的是我超级心水的公司 当然宇宙条也是</del>.希望自己能成为像学长一样厉害的人吧.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005336.jpg"  alt=""></p>
-<p>然后是18级JF学姐，<del>讲太多了</del>讲的内容丰富又让人深思联想.身为Wizz’s leader的她让我开始重新审视”产品”这个职位.(插一句话:开完面基会后与<del>BB酱</del>讨论了相关事宜,,总之我也表达不出来,产品真的是十分有必要的存在,JF学姐的控场能力也超强的.)<del>不过重点是人也漂亮</del></p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005329.jpg"  alt=""></p>
-<p>最后一个<del>突然流水账了起来</del>是我respect的QHT(因为太瑞思拜所以直接打出全名也是理所当然的,ssfd),身为Wizz技术负责人(orzorzorzorzorz(RTWG)当然经常让我直接没事就膜拜他的code.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005339.jpg"  alt=""></p>
-<p>以上是学长/姐 们的巨佬发言.</p>
-<p>中途大家都轮流简单介绍了自己.令我印象深刻的是拿了BAT三家offer的学姐orzorzorzorz.</p>
-<p>接下来就是Z老师了,以及Z老师三个超级强的同事,出口就是某力D总级别的,因为讲话的人太巨了(<del>没有想去WC这回事</del>)所以听的有点迷,总之就是十分dick的那种感觉.老师的照片就不放了,<del>考虑到知名度</del>.</p>
-<p>结束的时候大家又去211自由谈论了一会儿,认识了十分可爱又强大的<del>BB酱</del>,因为之前在某实验班面试过我所以还是想深♂入了解一下<del>BB酱</del>.聊着聊着BB酱真的是巨.我只能在旁边疯狂/kk.</p>
-<p>本来想和QHT学长也深♂入交流一下,结果他好像很忙/kk. </p>
-<p>接着认识了DB的开发者.我GitHub单向fo的巨佬(TG行为真的是呜呜)/kk.</p>
-<p>呜呜嘤,好多巨佬啊.萌新只能在一旁ssfd.</p>
-<p>Concluded: 我是最菜的了./kk.</p>
+    <title>MIT6.824 LAB1</title>
+    <url>/posts/60658/</url>
+    <content><![CDATA[<h3 id="mit6-824-系列学习"><a href="#mit6-824-系列学习" class="headerlink" title="mit6.824 系列学习"></a>mit6.824 系列学习</h3><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
+<p>首先贴一下课程官网,方便大家查阅.</p>
+<p><a href="https://pdos.csail.mit.edu/6.824/schedule.html" target="_blank" rel="noopener">mit6.824</a></p>
+<h5 id="lab1实现"><a href="#lab1实现" class="headerlink" title="lab1实现:"></a>lab1实现:</h5><p>首先 在 <a href="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html" target="_blank" rel="noopener">这里</a>看lab1的要求,我们先执行几个官网给出的命令搭建实验环境</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ git clone git:&#x2F;&#x2F;g.csail.mit.edu&#x2F;6.824-golabs-2020 6.824</span><br><span class="line">$ cd 6.824</span><br><span class="line">$ ls</span><br><span class="line">Makefile src</span><br><span class="line">$</span><br></pre></td></tr></table></figure>
+
+<p>这样就能直接拉取到所需的代码</p>
+<p>大致目录如下:</p>
+<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/d53343b1-94ed-4137-afe8-46c52633aaa5.png"  alt=""></p>
+<p>然后继续看官网:</p>
+<blockquote>
+<p>We supply you with a simple sequential mapreduce implementation in src/main/mrsequential.go. It runs the maps and reduces one at a time, in a single process. We also provide you with a couple of MapReduce applications: word-count in mrapps/wc.go, and a text indexer in mrapps/indexer.go. You can run word count sequentially as follows:</p>
+</blockquote>
+<p>大致是提供一个MapReduce application demo 你可以照着run一下.</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ cd ~&#x2F;6.824</span><br><span class="line">$ cd src&#x2F;main</span><br><span class="line">$ go build -buildmode&#x3D;plugin ..&#x2F;mrapps&#x2F;wc.go</span><br><span class="line">$ rm mr-out*</span><br><span class="line">$ go run mrsequential.go wc.so pg*.txt</span><br><span class="line">$ more mr-out-0</span><br><span class="line">A 509</span><br><span class="line">ABOUT 2</span><br><span class="line">ACT 8</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>于是我在goland试了一下:</p>
+<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/f58c702b-0807-4fd6-8d63-c8f6224b5ccf.png"  alt=""></p>
+<p>报错贴了Google:原来是Windows环境做不了这个lab啊</p>
+<p>稍加思索—&gt;发现异常–&gt;<del>放弃实验</del>跑去linux继续苟</p>
+<p>然后就会输出它给你的文本的单词统计(这也是我做的第一个hadoop框架有用的demo.hadoop内核代码也是mapreduce.</p>
+<p>clone出来的仓库中只有一个文件夹是和第一个lab mapreduce相关的</p>
+<p>mr文件夹!芜湖</p>
+<h5 id="关于mapreduce系统框架"><a href="#关于mapreduce系统框架" class="headerlink" title="关于mapreduce系统框架:"></a>关于mapreduce系统框架:</h5><p>MapReduce系统是由一个master进程和多个worker进程组成，master和worker之间是通过RPC(Remote Procedure Call)进行通信，master进程负责给多个worker分配任务，记录任务完成状态，并且需要处理worker奔溃或者超时运行等问题，worker需要处理相应的任务，处理完毕发送报告给master，再请求下一个任务。</p>
+<p>master结构:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> Flag <span class="keyword">struct</span> &#123;</span><br><span class="line">	processing <span class="keyword">bool</span></span><br><span class="line">	finished   <span class="keyword">bool</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Master <span class="keyword">struct</span> &#123;</span><br><span class="line">	FileNames      []<span class="keyword">string</span></span><br><span class="line">	MapFlags       []Flag</span><br><span class="line">	ReduceFlags    []Flag</span><br><span class="line">	MapTaskCnts    []<span class="keyword">int</span></span><br><span class="line">	ReduceTaskCnts []<span class="keyword">int</span></span><br><span class="line">	MapAllDone     <span class="keyword">bool</span></span><br><span class="line">	ReduceALLDone  <span class="keyword">bool</span></span><br><span class="line">	MapNum         <span class="keyword">int</span></span><br><span class="line">	ReduceNum      <span class="keyword">int</span></span><br><span class="line">	Mut            sync.Mutex</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>FileNames : pg*.txt这八个文件名</li>
+<li>MapFlags :对应的状态</li>
+<li>ReduceFlags:同状态</li>
+<li>MapTaskCnts:记录map当前的任务序列号,如果map任务发生timeout,HandleTimeout这个函数对map任务进行的processing标志清0,重新分配,当前任务序列号在上个任务号中加1,如果之前发生timeout的任务来报告完成,由于小于当前任务号,HandleWorkerReport函数可以无需记录,直接退出.</li>
+<li>ReduceTaskcnts:同上</li>
+<li>MapAllDone:任务全部完成,变成true</li>
+<li>ReduceAllDone:Reduce任务全部完成为true</li>
+<li>MapNum:Map任务数</li>
+<li>ReduceNum:任务数</li>
+<li>Mut:排它锁</li>
+</ul>
+<p>Worker结构:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> TaskState <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	MapState    TaskState = <span class="number">0</span></span><br><span class="line">	ReduceState TaskState = <span class="number">1</span></span><br><span class="line">	StopState   TaskState = <span class="number">2</span></span><br><span class="line">	WaitState   TaskState = <span class="number">3</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> WorkerTask <span class="keyword">struct</span> &#123;</span><br><span class="line">	MapID          <span class="keyword">int</span></span><br><span class="line">	ReduceID       <span class="keyword">int</span></span><br><span class="line">	ReduceNum      <span class="keyword">int</span></span><br><span class="line">	MapNum         <span class="keyword">int</span></span><br><span class="line">	MapTaskCnt     <span class="keyword">int</span></span><br><span class="line">	ReduceTaskCnt  <span class="keyword">int</span></span><br><span class="line">	State          TaskState</span><br><span class="line">	FileName       <span class="keyword">string</span></span><br><span class="line">	MapFunction    <span class="function"><span class="keyword">func</span><span class="params">(<span class="keyword">string</span>, <span class="keyword">string</span>)</span> []<span class="title">KeyValue</span></span></span><br><span class="line">	ReduceFunction <span class="function"><span class="keyword">func</span><span class="params">(<span class="keyword">string</span>, []<span class="keyword">string</span>)</span> <span class="title">string</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>MapID和ReduceID：Map任务ID和Reduce任务ID</li>
+<li>MapNum和ReduceNum：Map的任务总数和Reduce任务总数</li>
+<li>MapTaskCnt和ReduceTaskCnt：Map任务序列号和Reduce序列号<br>State：任务有四种状态，分别是MapState，ReduceState，StopState和WaitState，MapState表示当前需要处理Map任务，ReduceState表示当前需要处理Reduce任务，WaitState表示当前没有需要处理的任务，开始睡眠等待，StopState代表任务已全部完成，可以退出。</li>
+<li>FileName：表示Map任务需要的文件名</li>
+<li>MapFunction和ReduceFunction：任务根据State需要进行的Map函数或者Reduce函数</li>
+</ul>
+<p>Master接口:</p>
+<p>创建Master:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeMaster</span><span class="params">(files []<span class="keyword">string</span>, nReduce <span class="keyword">int</span>)</span> *<span class="title">Master</span></span> &#123;</span><br><span class="line">	m := Master&#123;FileNames: files,</span><br><span class="line">		MapFlags:       <span class="built_in">make</span>([]Flag, <span class="built_in">len</span>(files), <span class="built_in">len</span>(files)),</span><br><span class="line">		ReduceFlags:    <span class="built_in">make</span>([]Flag, nReduce, nReduce),</span><br><span class="line">		MapNum:         <span class="built_in">len</span>(files),</span><br><span class="line">		ReduceNum:      nReduce,</span><br><span class="line">		MapAllDone:     <span class="literal">false</span>,</span><br><span class="line">		ReduceALLDone:  <span class="literal">false</span>,</span><br><span class="line">		MapTaskCnts:    <span class="built_in">make</span>([]<span class="keyword">int</span>, <span class="built_in">len</span>(files)),</span><br><span class="line">		ReduceTaskCnts: <span class="built_in">make</span>([]<span class="keyword">int</span>, nReduce),</span><br><span class="line">	&#125;</span><br><span class="line">	m.server()</span><br><span class="line">	args, reply := NoArgs&#123;&#125;, NoReply&#123;&#125;</span><br><span class="line">	<span class="keyword">go</span> m.HandleTimeOut(&amp;args, &amp;reply)</span><br><span class="line">	<span class="keyword">return</span> &amp;m</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>生成worker task:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Master)</span> <span class="title">CreateWorkerTask</span><span class="params">(args *NoArgs, workerTask *WorkerTask)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	m.Mut.Lock()</span><br><span class="line">	<span class="keyword">defer</span> m.Mut.Unlock()</span><br><span class="line">	<span class="keyword">if</span> !m.MapAllDone &#123;</span><br><span class="line">		<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.MapNum; idx++ &#123;</span><br><span class="line">			<span class="keyword">if</span> !m.MapFlags[idx].processing &amp;&amp; !m.MapFlags[idx].finished &#123;</span><br><span class="line">				workerTask.ReduceNum = m.ReduceNum</span><br><span class="line">				workerTask.MapNum = m.MapNum</span><br><span class="line">				workerTask.State = MapState</span><br><span class="line">				workerTask.MapID = idx</span><br><span class="line">				workerTask.FileName = m.FileNames[idx]</span><br><span class="line">				m.MapTaskCnts[idx]++</span><br><span class="line">				workerTask.MapTaskCnt = m.MapTaskCnts[idx]</span><br><span class="line">				m.MapFlags[idx].processing = <span class="literal">true</span></span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		workerTask.State = WaitState</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !m.ReduceALLDone &#123;</span><br><span class="line">		<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.ReduceNum; idx++ &#123;</span><br><span class="line">			<span class="keyword">if</span> !m.ReduceFlags[idx].processing &amp;&amp; !m.ReduceFlags[idx].finished &#123;</span><br><span class="line">				workerTask.State = ReduceState</span><br><span class="line">				workerTask.ReduceNum = m.ReduceNum</span><br><span class="line">				workerTask.MapNum = m.MapNum</span><br><span class="line">				workerTask.ReduceID = idx</span><br><span class="line">				m.ReduceTaskCnts[idx]++</span><br><span class="line">				workerTask.ReduceTaskCnt = m.ReduceTaskCnts[idx]</span><br><span class="line">				m.ReduceFlags[idx].processing = <span class="literal">true</span></span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		workerTask.State = WaitState</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	workerTask.State = StopState</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数首先会获得互斥锁，然后判断MapAllDone是否为false，为false进入循环遍历，如果某个任务的processing状态和finished状态都为false，说明这个任务可以需要被处理，可以分配，讲配置参数写入到输出参数中，并标志master中当前任务的状态processing为true以及序列号。如果没有任务需要处理，说明map有些任务正在处理，有些已完成。进入等待阶段。判断ReduceALLDone与前面类似。不加以叙述。</p>
+<p>处理worker report</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Master)</span> <span class="title">HandleWorkerReport</span><span class="params">(wr *WorkerReportArgs, task *NoReply)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	m.Mut.Lock()</span><br><span class="line">	<span class="keyword">defer</span> m.Mut.Unlock()</span><br><span class="line">	<span class="keyword">if</span> wr.IsSuccess &#123;</span><br><span class="line">		<span class="keyword">if</span> wr.State == MapState &#123;</span><br><span class="line">			<span class="keyword">if</span> wr.MapTaskCnt == m.MapTaskCnts[wr.MapID] &#123;</span><br><span class="line">				m.MapFlags[wr.MapID].finished = <span class="literal">true</span></span><br><span class="line">				m.MapFlags[wr.MapID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> wr.ReduceTaskCnt == m.ReduceTaskCnts[wr.ReduceID] &#123;</span><br><span class="line">				m.ReduceFlags[wr.ReduceID].finished = <span class="literal">true</span></span><br><span class="line">				m.ReduceFlags[wr.ReduceID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> wr.State == MapState &#123;</span><br><span class="line">			<span class="keyword">if</span> m.MapFlags[wr.MapID].finished == <span class="literal">false</span> &#123;</span><br><span class="line">				m.MapFlags[wr.MapID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> m.ReduceFlags[wr.ReduceID].finished == <span class="literal">false</span> &#123;</span><br><span class="line">				m.ReduceFlags[wr.ReduceID].processing = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> id := <span class="number">0</span>; id &lt; m.MapNum; id++ &#123;</span><br><span class="line">		<span class="keyword">if</span> !m.MapFlags[id].finished &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> id == m.MapNum<span class="number">-1</span> &#123;</span><br><span class="line">				m.MapAllDone = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> id := <span class="number">0</span>; id &lt; m.ReduceNum; id++ &#123;</span><br><span class="line">		<span class="keyword">if</span> !m.ReduceFlags[id].finished &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> id == m.ReduceNum<span class="number">-1</span> &#123;</span><br><span class="line">				m.ReduceALLDone = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输入参数有一个标示位,表示任务是否成功,成功判断任务状态以及序列号,如果序列号与master对应上,可以表明这个任务成功,如果对不上,说明这个是个timeout任务,无需处理.如果任务标志位为false,进入错误处理,判断任务是否完成,因为可能是timeout任务标志位为false，未完成让processing置0，CreateWorkerTask可以重新分配。最后判断Map任务和Reduce任务是否相应全部完成，全部完成可以设置MapALLDone和ReduceALLDone为true。</p>
+<p>处理timeout:</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Master)</span> <span class="title">HandleTimeOut</span><span class="params">(args *NoArgs, reply *NoReply)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		m.Mut.Lock()</span><br><span class="line">		<span class="keyword">if</span> m.MapAllDone &amp;&amp; m.ReduceALLDone &#123;</span><br><span class="line">			m.Mut.Unlock()</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		time.Sleep(<span class="number">30</span> * time.Millisecond)</span><br><span class="line">		<span class="keyword">if</span> !m.MapAllDone &#123;</span><br><span class="line">			<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.MapNum; idx++ &#123;</span><br><span class="line">				<span class="keyword">if</span> m.MapFlags[idx].finished == <span class="literal">false</span> &#123;</span><br><span class="line">					m.MapFlags[idx].processing = <span class="literal">false</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; m.ReduceNum; idx++ &#123;</span><br><span class="line">				<span class="keyword">if</span> m.ReduceFlags[idx].finished == <span class="literal">false</span> &#123;</span><br><span class="line">					m.ReduceFlags[idx].processing = <span class="literal">false</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		m.Mut.Unlock()</span><br><span class="line">		time.Sleep(<span class="number">2000</span> * time.Millisecond)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>处理timeout很简单,先判断MapAllDone和ReduceAllDone是不是都为true,都为true都退出即可.然后判断m任务有无完成,没有完成任务的processing清为0,就可以让createWorkerTask重新分配没有完成的任务.最后释放锁,睡眠2S,可以看到Handletimeout函数是以2S为间隔,2s没有完成任务的视为timeout.</p>
+<p>Work接口</p>
+<p>生成Work</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// main/mrworker.go calls this function.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Worker</span><span class="params">(mapf <span class="keyword">func</span>(<span class="keyword">string</span>, <span class="keyword">string</span>)</span> []<span class="title">KeyValue</span>,</span></span><br><span class="line">	reducef <span class="function"><span class="keyword">func</span><span class="params">(<span class="keyword">string</span>, []<span class="keyword">string</span>)</span> <span class="title">string</span>)</span> &#123;</span><br><span class="line">	wt := WorkerTask&#123;</span><br><span class="line">		MapFunction:    mapf,</span><br><span class="line">		ReduceFunction: reducef,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		wt.GetWorkerTask()</span><br><span class="line">		<span class="keyword">if</span> wt.State == MapState &#123;</span><br><span class="line">			wt.DoMapWork()</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> wt.State == ReduceState &#123;</span><br><span class="line">			wt.DoReduceWork()</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> wt.State == StopState &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> wt.State == WaitState &#123;</span><br><span class="line">			time.Sleep(<span class="number">300</span> * time.Millisecond)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>mrworker会调用worker函数，传入map函数和reduce函数，根据函数参数创建一个worker，然后进入循环，调用GetWorkerTask函数，这个函数会调用Master.CreateWorkerTask函数，并传入两个参数，得到任务分配后，讲相应的参数和状态赋值给worker。worker就可以根据状态进入处理相应任务或者睡眠，或者退出。</p>
+<p>Map Work</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(wt *WorkerTask)</span> <span class="title">DoMapWork</span><span class="params">()</span></span> &#123;</span><br><span class="line">	file, err := os.Open(wt.FileName)</span><br><span class="line">	content, err := ioutil.ReadAll(file)</span><br><span class="line">	file.Close()</span><br><span class="line">	kvs := wt.MapFunction(wt.FileName, <span class="keyword">string</span>(content))</span><br><span class="line">	intermediate := <span class="built_in">make</span>([][]KeyValue, wt.ReduceNum, wt.ReduceNum)</span><br><span class="line">	<span class="keyword">for</span> _, kv := <span class="keyword">range</span> kvs &#123;</span><br><span class="line">		idx := ihash(kv.Key) % wt.ReduceNum</span><br><span class="line">		intermediate[idx] = <span class="built_in">append</span>(intermediate[idx], kv)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; wt.ReduceNum; idx++ &#123;</span><br><span class="line">		intermediateFileName := fmt.Sprintf(<span class="string">"mr-%d-%d"</span>, wt.MapID, idx)</span><br><span class="line">		file, err = os.Create(intermediateFileName)</span><br><span class="line">		data, _ := json.Marshal(intermediate[idx])</span><br><span class="line">		_, err = file.Write(data)</span><br><span class="line">		file.Close()</span><br><span class="line">	&#125;</span><br><span class="line">	wt.ReportWorkerTask(<span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(wt *WorkerTask)</span> <span class="title">ReportWorkerTask</span><span class="params">(err error)</span></span> &#123;</span><br><span class="line">	wra := WorkerReportArgs&#123;</span><br><span class="line">		MapID:     wt.MapID,</span><br><span class="line">		ReduceID:  wt.ReduceID,</span><br><span class="line">		State:     wt.State,</span><br><span class="line">		IsSuccess: <span class="literal">true</span>,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> wt.State == MapState &#123;</span><br><span class="line">		wra.MapTaskCnt = wt.MapTaskCnt</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		wra.ReduceTaskCnt = wt.ReduceTaskCnt</span><br><span class="line">	&#125;</span><br><span class="line">	wrr := NoReply&#123;&#125;</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		wra.IsSuccess = <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line">	call(<span class="string">"Master.HandleWorkerReport"</span>, &amp;wra, &amp;wrr)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Map work就是读取相应的文件，调用MapFunction生成KeyValue对，然后根据哈希函数得到要讲当前key分配到哪一块中，总共有ReduceNum块，最后根据这么块生成对应map以及reduce块的文件。然后调用ReportWorkerTask报告成功，传入nil表示成功。ReportWorkerTask内部会调用Master.HandleWorkerReport函数来汇报这一执行结果。</p>
+<p>Reduce Work</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(wt *WorkerTask)</span> <span class="title">DoReduceWork</span><span class="params">()</span></span> &#123;</span><br><span class="line">	kvsReduce := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>][]<span class="keyword">string</span>)</span><br><span class="line">	<span class="keyword">for</span> idx := <span class="number">0</span>; idx &lt; wt.MapNum; idx++ &#123;</span><br><span class="line">		filename := fmt.Sprintf(<span class="string">"mr-%d-%d"</span>, idx, wt.ReduceID)</span><br><span class="line">		file, err := os.Open(filename)</span><br><span class="line">		content, err := ioutil.ReadAll(file)</span><br><span class="line">		file.Close()</span><br><span class="line">		kvs := <span class="built_in">make</span>([]KeyValue, <span class="number">0</span>)</span><br><span class="line">		err = json.Unmarshal(content, &amp;kvs)</span><br><span class="line">		<span class="keyword">for</span> _, kv := <span class="keyword">range</span> kvs &#123;</span><br><span class="line">			_, ok := kvsReduce[kv.Key]</span><br><span class="line">			<span class="keyword">if</span> !ok &#123;</span><br><span class="line">				kvsReduce[kv.Key] = <span class="built_in">make</span>([]<span class="keyword">string</span>, <span class="number">0</span>)</span><br><span class="line">			&#125;</span><br><span class="line">			kvsReduce[kv.Key] = <span class="built_in">append</span>(kvsReduce[kv.Key], kv.Value)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	ReduceResult := <span class="built_in">make</span>([]<span class="keyword">string</span>, <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">for</span> key, val := <span class="keyword">range</span> kvsReduce &#123;</span><br><span class="line">		ReduceResult = <span class="built_in">append</span>(ReduceResult, fmt.Sprintf(<span class="string">"%v %v\n"</span>, key, wt.ReduceFunction(key, val)))</span><br><span class="line">	&#125;</span><br><span class="line">	outFileName := fmt.Sprintf(<span class="string">"mr-out-%d"</span>, wt.ReduceID)</span><br><span class="line">	err := ioutil.WriteFile(outFileName, []<span class="keyword">byte</span>(strings.Join(ReduceResult, <span class="string">""</span>)), <span class="number">0644</span>)</span><br><span class="line">	wt.ReportWorkerTask(<span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里首先读取相同块的所有文件,需要对相同key的内容聚合在一起,然后循环调用ReduceFunction得到Reduce的结果,最后生成输出.</p>
+<h5 id="END"><a href="#END" class="headerlink" title="END:"></a>END:</h5><p>到这里MapReduce实现的就差不多了,关于MapReduce,总结下来是:map对每个文件生成单词和单一数目,分在不同的区块保存,Reduce对不同区块进行统计,得到最终结果.讲这两个过程直接包装起来就是mapreduce.</p>
+<p>关于MapReduce的论文,可以阅读<a href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf" target="_blank" rel="noopener">这里</a>.</p>
+<p>当然由于是04年的论文,所以现在的翻译资源已经很丰富了(<del>正经人谁去读原版那种单词都认识合成一句话就不知道讲什么的东西呢</del>.</p>
+<p>最后放一张过test图片:</p>
+<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/c4f8429c-ca81-426e-9e07-32a5a8cc446e.png"  alt=""></p>
+<p>​                                                                                                        —MIT6.824 lab1 end</p>
+<p>​                                                                                                        ———–2020.10.11    </p>
+<p>@copyright ————baijianruoliorz@Github——————————–</p>
 ]]></content>
       <categories>
-        <category>Wizz</category>
+        <category>分布式</category>
       </categories>
       <tags>
         <tag>blog</tag>
-        <tag>夜谈</tag>
+        <tag>分布式</tag>
+        <tag>MIT6.824</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hunter使用</title>
+    <url>/posts/54907/</url>
+    <content><![CDATA[<p>[VirtualArticle(title=<span>推荐一款自研的Java版开源博客系统OneBlog</span>, content=<p><strong>OneBlog</strong>&nbsp;一款超好用的Java版开源博客<img src="/" class="lazyload" data-src="https://cdn.jsdelivr.net/emojione/assets/svg/2764.svg"  title=":heart:" alt="❤️"><img src="/" class="lazyload" data-src="https://cdn.jsdelivr.net/emojione/assets/svg/2764.svg"  title=":heart:" alt="❤️"><img src="/" class="lazyload" data-src="https://cdn.jsdelivr.net/emojione/assets/svg/2764.svg"  title=":heart:" alt="❤️"></p> </p>
+<p><img src="/" class="lazyload" data-src="https://img.shields.io/badge/JDK-1.8-green.svg"  title="" alt="JDK">&nbsp;<img src="/" class="lazyload" data-src="https://img.shields.io/badge/Maven-3.3.1-green.svg"  title="" alt="Maven">&nbsp;<img src="/" class="lazyload" data-src="https://img.shields.io/badge/MySQL-5.6.4-green.svg"  title="" alt="MySQL">&nbsp;<img src="/" class="lazyload" data-src="https://img.shields.io/badge/Redis-3.0.503-green.svg"  title="" alt="Redis">&nbsp;<a href="https://gitee.com/yadong.zhang/DBlog/blob/master/LICENSE" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://img.shields.io/badge/license-MIT-yellow.svg"  title="" alt="license"></a></p> 
+<h2 id="introduction">Introduction 简介</h2> 
+<p><strong>OneBlog</strong>&nbsp;一个简洁美观、功能强大并且自适应的Java博客。使用springboot开发，前端使用Bootstrap。支持移动端自适应，配有完备的前台和后台管理功能。</p> 
+<p><a href="https://gitee.com/yadong.zhang/DBlog/stargazers" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://gitee.com/yadong.zhang/DBlog/badge/star.svg"  title="" alt="star"></a>&nbsp;<a href="https://gitee.com/yadong.zhang/DBlog/members" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://gitee.com/yadong.zhang/DBlog/badge/fork.svg"  title="" alt="fork"></a></p> 
+<h2 id="features">Features 功能、特点<a class="headerlink" title="Permanent link" href="http://dblog-docs.zhyd.me/#features" target="_blank" rel="noopener"><br></a></h2> 
+<ul> 
+ <li>支持wangEditor和Markdown两种富文本编辑器，可以自行选择</li> 
+ <li>在线申请友情链接，无需站长手动配置，只需申请方添加完站长的连接后自行申请即可</li> 
+ <li>支持将文件提交到百度站长收录平台，加快百度引擎的收录</li> 
+ <li>自研评论系统</li> 
+ <li>后台配备完善的权限管理</li> 
+ <li>自带robots、sitemap等seo模板</li> 
+ <li>集成七牛云，实现文件云存储</li> 
+ <li>系统配置支持快速配置。可通过后台手动修改诸如域名信息、SEO优化、赞赏码、七牛云以及更新维护通知等。</li> 
+ <li>管理员可向在线的用户发送==实时消息==（需用户授权 - 基于websocket实现，具体参考<strong><a href="https://www.zhyd.me/article/111" target="_blank" rel="noopener">OneBlog建站之Websocket的使用</a></strong>）</li> 
+ <li>新增“<a href="https://www.zhyd.me/article/117" target="_blank"><strong>博客迁移</strong></a>”功能，支持一键同步imooc、csdn或者iteye上的文章</li> 
+</ul> 
+<h2 id="demo">Demo 演示<a class="headerlink" title="Permanent link" href="http://dblog-docs.zhyd.me/#demo" target="_blank" rel="noopener"><br></a></h2> 
+<ul> 
+ <li><a href="http://dblog-web.zhyd.me/" target="_blank" rel="noopener">前台demo</a></li> 
+ <li><a href="http://dblog-admin.zhyd.me/" target="_blank" rel="noopener">后台demo(root,123456)</a></li> 
+</ul> 
+<h2>示例图片</h2> 
+<p><img src="/" class="lazyload" data-src="https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093642757-1184476579.png"  title="" alt=""></p> 
+<p><img src="/" class="lazyload" data-src="https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093741389-1090581462.png"  title="" alt=""></p> 
+<p><img src="/" class="lazyload" data-src="https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093819117-856989972.png"  title="" alt=""></p> 
+<p><img src="/" class="lazyload" data-src="https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093912776-1233458814.png"  title="" alt=""></p> 
+<p>&nbsp;<img src="/" class="lazyload" data-src="https://images2018.cnblogs.com/blog/631092/201809/631092-20180911094533849-1960159273.png"  title="" alt=""></p> 
+<p>&nbsp;</p> 
+<h2 id="_1">其他参考站点<a class="headerlink" title="Permanent link" href="http://dblog-docs.zhyd.me/#_1" target="_blank" rel="noopener"><br></a></h2> 
+<ul> 
+ <li><a href="https://www.zhyd.me/" target="_blank" rel="noopener">张亚东博客</a></li> 
+ <li><a href="http://jqbxx.com/" target="_blank" rel="noopener">机器不学习</a></li> 
+ <li><a href="http://www.jsdblog.com/" target="_blank" rel="noopener">攻城狮不是猫博客</a></li> 
+ <li><a href="http://www.axxo.top/" target="_blank" rel="noopener">刘辉辉博客</a></li> 
+ <li>...</li> 
+</ul> 
+<h2 id="group">Group 交流群</h2> 
+<table> 
+ <thead> 
+  <tr>
+   <th align="center">微信（备注：加群）</th>
+   <th align="center">QQ群</th>
+   <th align="center">公众号</th>
+  </tr> 
+ </thead> 
+ <tbody> 
+  <tr> 
+   <td align="center"><img src="/" class="lazyload" data-src="https://gitee.com/yadong.zhang/static/raw/master/wx/wx.png"  title="" alt=""></td> 
+   <td align="center"><img src="/" class="lazyload" data-src="https://gitee.com/yadong.zhang/static/raw/master/wx/qq_group.png"  title="" alt=""></td> 
+   <td align="center"><img src="/" class="lazyload" data-src="https://gitee.com/yadong.zhang/static/raw/master/wx/wechat_account.jpg"  title="" alt=""></td> 
+  </tr> 
+ </tbody> 
+</table> 
+<h2 id="license">License 许可证<a class="headerlink" title="Permanent link" href="http://dblog-docs.zhyd.me/#license" target="_blank" rel="noopener"><br></a></h2> 
+<p><a href="https://gitee.com/yadong.zhang/DBlog/blob/master/LICENSE" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://img.shields.io/badge/license-MIT-yellow.svg"  title="" alt="license"></a></p> 
+<p>嗯哼~~ MIT懂吧？ 不懂的话我也没办法，百度吧~</p> 
+<h2 id="todo">Todo 后续功能<a class="headerlink" title="Permanent link" href="http://dblog-docs.zhyd.me/#todo" target="_blank" rel="noopener"><br></a></h2> 
+<ul class="task-list"> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" checked disabled></label>博客数据迁移</li> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" checked disabled></label>结合websocket+notification实现管理员向在线用户实时发送消息通知（隐藏掉浏览器的情况下一样会弹出，类似windowx桌面弹窗，需要用户授权）</li> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled></label>页面缓存</li> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled></label>数据统计</li> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled></label>cc防护</li> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled></label>集成阿里云OSS</li> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled></label>配套小程序</li> 
+ <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled></label>待续...</li> 
+</ul> 
+<p>&nbsp;</p> 
+<p>最后打个广告，如果你觉得这篇文章对你有用，可以关注我的技术公众号：<strong>码一码</strong>，你的关注和转发是对我最大的支持，O(∩_∩)O</p> 
+<p style="text-align: center"><img src="/" class="lazyload" data-src="https://gitee.com/yadong.zhang/static/raw/master/wx/wechat_account.jpg"  title="" alt=""></p>, author=HandsomeBoy丶, releaseDate=2018-09-11 09:53:00, source=https://www.cnblogs.com/zhangyadong/p/oneblog.html, description=OneBlog一个简洁美观、功能强大并且自适应的Java博客。使用springboot开发，前端使用Bootstrap。支持移动端自适应，配有完备的前台和后台管理功能。, keywords=null, tags=[其他], imageLinks=[ImageLink(srcLink=https://img.shields.io/badge/MySQL-5.6.4-green.svg), ImageLink(srcLink=https://gitee.com/yadong.zhang/DBlog/badge/fork.svg), ImageLink(srcLink=https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093819117-856989972.png), ImageLink(srcLink=https://gitee.com/yadong.zhang/static/raw/master/wx/wechat_account.jpg), ImageLink(srcLink=https://img.shields.io/badge/Redis-3.0.503-green.svg), ImageLink(srcLink=https://images2018.cnblogs.com/blog/631092/201809/631092-20180911094533849-1960159273.png), ImageLink(srcLink=https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093741389-1090581462.png), ImageLink(srcLink=https://gitee.com/yadong.zhang/static/raw/master/wx/wx.png), ImageLink(srcLink=https://gitee.com/yadong.zhang/static/raw/master/wx/qq_group.png), ImageLink(srcLink=https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093912776-1233458814.png), ImageLink(srcLink=https://cdn.jsdelivr.net/emojione/assets/svg/2764.svg), ImageLink(srcLink=https://img.shields.io/badge/license-MIT-yellow.svg), ImageLink(srcLink=https://img.shields.io/badge/JDK-1.8-green.svg), ImageLink(srcLink=https://img.shields.io/badge/Maven-3.3.1-green.svg), ImageLink(srcLink=https://gitee.com/yadong.zhang/DBlog/badge/star.svg), ImageLink(srcLink=https://images2018.cnblogs.com/blog/631092/201809/631092-20180911093642757-1184476579.png)])]]]></content>
+      <categories>
+        <category>Go</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>GO</tag>
+        <tag>字节面试准备</tag>
       </tags>
   </entry>
   <entry>
@@ -376,6 +432,85 @@
 <p>但就在网上开始吹嘘网文输出之后没几个月吧，一通整顿，死一大片。这可不是心血来潮，隔三差五就来一次。自我审查，网站审查之外，如今又多了举报这个良好习惯。没记错的话，玄幻题材改编电视剧电影也受限吧？说正经的，现在独立游戏何尝没有在国外打榜？但你信不信，一做大，全完？都不用审查部门出手，同行和玩家就能举报得你下架，现在找个毛病出来还不容易么？</p>
 <p>免不了有人义愤填膺地找到了破绽：题目是怎么提高输出，你回答了个鬼！</p>
 <p>真要认真说，你也就看不到什么了。再说，2-（-1）=3，会算吗？</p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Wizz工作室面基大会</title>
+    <url>/posts/37390/</url>
+    <content><![CDATA[<h3 id="Wizz工作室面基大会"><a href="#Wizz工作室面基大会" class="headerlink" title="Wizz工作室面基大会"></a>Wizz工作室面基大会</h3><p>10月16号,我参加了Wizz的面基大会.</p>
+<p>有一说一,之前对这种”<del>ST</del>式”讨论向来是抵制的,不过从今晚来看,感觉的确有很大的作用.</p>
+<p>首先是17级转正阿里的TY学长，讲了自己加入为之三年来的成长。<del>阿里真的是我超级心水的公司 当然宇宙条也是</del>.希望自己能成为像学长一样厉害的人吧.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005336.jpg"  alt=""></p>
+<p>然后是18级JF学姐，<del>讲太多了</del>讲的内容丰富又让人深思联想.身为Wizz’s leader的她让我开始重新审视”产品”这个职位.(插一句话:开完面基会后与<del>BB酱</del>讨论了相关事宜,,总之我也表达不出来,产品真的是十分有必要的存在,JF学姐的控场能力也超强的.)<del>不过重点是人也漂亮</del></p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005329.jpg"  alt=""></p>
+<p>最后一个<del>突然流水账了起来</del>是我respect的QHT(因为太瑞思拜所以直接打出全名也是理所当然的,ssfd),身为Wizz技术负责人(orzorzorzorzorz(RTWG)当然经常让我直接没事就膜拜他的code.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005339.jpg"  alt=""></p>
+<p>以上是学长/姐 们的巨佬发言.</p>
+<p>中途大家都轮流简单介绍了自己.令我印象深刻的是拿了BAT三家offer的学姐orzorzorzorz.</p>
+<p>接下来就是Z老师了,以及Z老师三个超级强的同事,出口就是某力D总级别的,因为讲话的人太巨了(<del>没有想去WC这回事</del>)所以听的有点迷,总之就是十分dick的那种感觉.老师的照片就不放了,<del>考虑到知名度</del>.</p>
+<p>结束的时候大家又去211自由谈论了一会儿,认识了十分可爱又强大的<del>BB酱</del>,因为之前在某实验班面试过我所以还是想深♂入了解一下<del>BB酱</del>.聊着聊着BB酱真的是巨.我只能在旁边疯狂/kk.</p>
+<p>本来想和QHT学长也深♂入交流一下,结果他好像很忙/kk. </p>
+<p>接着认识了DB的开发者.我GitHub单向fo的巨佬(TG行为真的是呜呜)/kk.</p>
+<p>呜呜嘤,好多巨佬啊.萌新只能在一旁ssfd.</p>
+<p>Concluded: 我是最菜的了./kk.</p>
+]]></content>
+      <categories>
+        <category>Wizz</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/posts/520520/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>总结</tag>
+        <tag>平淡の日常</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>写在十八岁之际</title>
+    <url>/posts/22741/</url>
+    <content><![CDATA[<h2 id="写在十八岁之际"><a href="#写在十八岁之际" class="headerlink" title="写在十八岁之际:"></a>写在十八岁之际:</h2><p>从今天开始就要正式成为成年人了<del>QAQ(成年人不允许这种颜文字</del></p>
+<p>没想到写到第二句我就不知道说些什么了,我果然只适合写一些FD的言论.</p>
+<p>今年是个令我有很大成长的一年,也是我来到XDU的第二年,不得不说XDU至少在搞机这方</p>
+<p>面的氛围可以作为来这里的重要原因.也结识了几个很会搞机的学长(其实也有<del>学姐</del>,但</p>
+<p>她们code能力多少弱一些)</p>
+<p>想来来这里的第一年和今年心态有很大变化,不会因为我更<del>mature</del>了吧.也更加坚定</p>
+<p>了自己未来的目标,个人觉得还是对宇宙机与技术很感兴趣.但是因为这是一篇生日水文</p>
+<p>所以严肃一些的话题不予讨论.</p>
+<p>我果然不适合写这种一本正经的文章,进入带学撸码一年已经丧失了写作能力…</p>
+<p>那就放几个我的项目吧,希望未来能一直走下去.</p>
+<p><a href="https://github.com/baijianruoliorz/mengnanClass" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=mengnanClass"  alt="ReadMe Card"></a></p>
+<p><a href="https://github.com/baijianruoliorz/bluebell" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=bluebell"  alt="ReadMe Card"></a>    </p>
+<p><a href="https://github.com/baijianruoliorz/renting_springboot" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=renting_springboot"  alt="ReadMe Card"></a></p>
+<p>使命は、何としても完成するのか.</p>
 ]]></content>
       <categories>
         <category>夜谈</category>
@@ -441,32 +576,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/posts/520520/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>夜谈</category>
-      </categories>
-      <tags>
-        <tag>blog</tag>
-        <tag>总结</tag>
-        <tag>平淡の日常</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>重返高中祭</title>
     <url>/posts/1388/</url>
     <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
@@ -480,42 +589,67 @@
       </tags>
   </entry>
   <entry>
-    <title>面向字节学习-GO(一)</title>
-    <url>/posts/37808/</url>
-    <content><![CDATA[<p>面向字节学习-GO</p>
+    <title>憧憬と尸の道</title>
+    <url>/posts/13965/</url>
+    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
+<p>人类的记忆那一天已苏醒</p>
+<p>夜幕中摇晃的身影虚幻的步伐</p>
+<p>忐忑不安踏着声响</p>
+<p>无法掌握他梦中想看见的未来</p>
+<p>却在薄冰上绽放</p>
+<p>每当太阳西沉黑暗夜幕已降下</p>
+<p>那冰冷的手总会轻轻划过我们的脸庞</p>
+<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
+<p>追寻着希望下的光晕</p>
+<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
+<p>梦境的全貌已经触手就可及</p>
+<p>你愿意牺牲多少来一窥秘密</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>就用尸体骸骨铺路向前进</p>
+<p>那高墙对面存在着怎样的命运</p>
+<p>此刻唤起回忆中的童年憧憬</p>
+<p>真相就在眼前那咫尺的距离</p>
+<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
+<p>哭泣哀悼愤怒怨恨的伤悲</p>
+<p>反复地写入它记忆的终点</p>
+<p>自由是否可有也可无</p>
+<p>Ah-未来本应该有无限的道路</p>
+<p>宿命却催促踏上征途</p>
+<p>他们命运有如罗盘指向同个地方</p>
+<p>那究竟是谁的悲愿又是谁的梦想</p>
+<p>怨恨交织愤怒呐喊撕裂着心脏</p>
+<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
+<p>展开翅膀向着天际直冲而上</p>
+<p>恶魔在你耳边他奸诈地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>在天空那段存在着怎样的命运</p>
+<p>像是灯火般童年被囚禁的心</p>
+<p>如今火焰燃烧着真相与过往</p>
+<p>照亮那片尸体骸骨的前方</p>
+<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
+<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
+<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
+<p>每个步伐就承载了更多的梦</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>那黑暗之后存在着怎样的命运</p>
+<p>童年诅咒如今不再迂阔空虚</p>
+<p>何时才能实现那寄予的愿望</p>
+<p>就在跨过尸体骸骨的前方</p>
+<p>红莲的箭矢疾风呼啸而去</p>
+<p>散落满天的羽翼</p>
+<p>心脏就算撕裂贲张</p>
+<p>Requiem也不需要高声歌唱</p>
+<p>太阳在灵魂消逝西沉之前都不会落下</p>
+<p>勇敢的向前进吧</p>
+<p>向着波涛的彼方</p>
+<p>(END)</p>
 ]]></content>
       <categories>
-        <category>Go</category>
+        <category>摸鱼</category>
       </categories>
       <tags>
-        <tag>blog</tag>
-        <tag>GO</tag>
-        <tag>字节面试准备</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>写在十八岁之际</title>
-    <url>/posts/22741/</url>
-    <content><![CDATA[<h2 id="写在十八岁之际"><a href="#写在十八岁之际" class="headerlink" title="写在十八岁之际:"></a>写在十八岁之际:</h2><p>从今天开始就要正式成为成年人了<del>QAQ(成年人不允许这种颜文字</del></p>
-<p>没想到写到第二句我就不知道说些什么了,我果然只适合写一些FD的言论.</p>
-<p>今年是个令我有很大成长的一年,也是我来到XDU的第二年,不得不说XDU至少在搞机这方</p>
-<p>面的氛围可以作为来这里的重要原因.也结识了几个很会搞机的学长(其实也有<del>学姐</del>,但</p>
-<p>她们code能力多少弱一些)</p>
-<p>想来来这里的第一年和今年心态有很大变化,不会因为我更<del>mature</del>了吧.也更加坚定</p>
-<p>了自己未来的目标,个人觉得还是对宇宙机与技术很感兴趣.但是因为这是一篇生日水文</p>
-<p>所以严肃一些的话题不予讨论.</p>
-<p>我果然不适合写这种一本正经的文章,进入带学撸码一年已经丧失了写作能力…</p>
-<p>那就放几个我的项目吧,希望未来能一直走下去.</p>
-<p><a href="https://github.com/baijianruoliorz/mengnanClass" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=mengnanClass"  alt="ReadMe Card"></a></p>
-<p><a href="https://github.com/baijianruoliorz/bluebell" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=bluebell"  alt="ReadMe Card"></a>    </p>
-<p><a href="https://github.com/baijianruoliorz/renting_springboot" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=renting_springboot"  alt="ReadMe Card"></a></p>
-<p>使命は、何としても完成するのか.</p>
-]]></content>
-      <categories>
-        <category>夜谈</category>
-      </categories>
-      <tags>
-        <tag>夜谈</tag>
+        <tag>摸鱼</tag>
       </tags>
   </entry>
   <entry>
@@ -590,6 +724,21 @@
       </tags>
   </entry>
   <entry>
+    <title>面向字节学习-GO(一)</title>
+    <url>/posts/37808/</url>
+    <content><![CDATA[<p>面向字节学习-GO</p>
+<p>本系列博客为&lt;&lt;Go语言设计实现&gt;&gt;阅读心得.</p>
+]]></content>
+      <categories>
+        <category>Go</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>GO</tag>
+        <tag>字节面试准备</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>高考</title>
     <url>/posts/5308/</url>
     <content><![CDATA[<!DOCTYPE html> <html lang="zh"> <head> <meta charset="utf-8"/> <title>Markdown在线编辑器 - www.MdEditor.com</title> <link rel="shortcut icon" href="https://www.mdeditor.com/images/logos/favicon.ico" type="image/x-icon"/> <meta name="generator" content="Hexo 4.2.0"></head> <body><p>今早是被噩梦惊醒的</p> <p>可能潜意识里,高考越来越临近.不自主的就多想了一些,虽然平时也没在意.</p> <p>我居然梦见我复读了</p> <p>时间点居然还是诡异的距离高考三个月前 <del>草</del></p> <p>同复读的还有我高中玩的最好的朋友,目前就读于同济大学.</p> <p>但是说到底,他很强,同济大概只是他垫底的大学.高考他的分数也不是太令他满意.</p> <p>出分后,我曾对他说 你上同济是不是觉得有些遗憾</p> <p>他说 肯定有遗憾 但是高考就是这种一锤子买卖</p> <p>所以这个梦的设定就是我和他都复读了 时间点如上一般诡异</p> <p>我曾经觉得西电不是我的最佳去处 我有加分政策可以去一些中流985了</p> <p>事实上 我的同学也有不少靠专项计划加分去好学校的</p> <p>导致我考的比他们高 他们可以去更好的学校</p> <p>不知道这算不算是一个心结</p> <p>我在填报志愿的时候,也是非XX大学不去,而XX大学,就是我专项计划里的一所.我其实可以去里面读一些</p> <p>冷门的专业(好吧 心理学 噗)</p> <p>不知道选择西电选择计算机会让我以后如何 至少现在 我是很庆幸自己所读的大学不坏 所学的专业有所</p> <p>热爱.</p> <p>选择了xx大学的我 现在又会怎么样呢</p> <p>高考填志愿的那个上午</p> <p>我在电脑旁边 对着提前批报上了xx大学</p> <p>有个浙大毕业的舅舅 专门跟我讲了一下 你要选一个好专业(虽说逢人谈贵戚不是好事,但是这里可能为了说服自己或有缘读到这里的你们,这个人有亿点资产(嗯,真的是亿..并且早早把下一代送往大洋对面读 senior high school)在与母上微信交谈中,向我们根据高考分数推荐了</p> <p><strong>XDU</strong></p> <p>这个学校 高考前没有听说过</p> <p>我他么以为是啥垃圾大学 事实也证明了 在我信阳打taxi的地方 司机好事的问起:你是哪所学校就读的</p> <p>我<s>响亮的</s>回答道 :西安电子科技大学!(不能对外行说北雷村吧)</p> <p>害 和我大学一样是个二本吗</p> <p>是的</p> <p>接着来说说噩梦的故事</p> <p>大概是讲我与X同学一起复读 拾起了我许久不曾做的数学题 恰巧X是个数学大佬 看他做起来轻轻松松 </p> <p>而我异常困难,我心中就想:为什么我会的在距离高考三个月前来这里复读啊啊啊啊啊啊!!!!!我现在啥</p> <p>都不会了,梦里的我看着错的不少的数学题,一身冷汗.</p> <p>和梦里与x同学交流后,他说:我放弃同济来复读也有很大的心理压力(此处省略鸡汤)</p> <p>大概这样 我在梦里逐渐放弃了挣扎 决定剩下三个月好好学习 换取个奇迹….</p> <p>后来我就惊醒了…</p> <p>醒来后的许久 我都觉得 啊 有大学上真的太幸福了!</p> <p>XDU真是所好学校呢!!</p> <p>这个梦说来也巧 可能就是为了让我接受已经来了所211的事实吧</p> <p>我的高考分数是基本与我平时分差不多的 高考正常发挥就已经算是超长发挥了 所以来到XDU也没啥好抱</p> <p>怨的 何况在这里也有许多优秀的人(友链)</p> <p>嗯 就这样 高考过去一年了啊~</p> <script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body> </html>
@@ -601,70 +750,6 @@
       </categories>
       <tags>
         <tag>-总结 -感想</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>憧憬と尸の道</title>
-    <url>/posts/13965/</url>
-    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
-<p>人类的记忆那一天已苏醒</p>
-<p>夜幕中摇晃的身影虚幻的步伐</p>
-<p>忐忑不安踏着声响</p>
-<p>无法掌握他梦中想看见的未来</p>
-<p>却在薄冰上绽放</p>
-<p>每当太阳西沉黑暗夜幕已降下</p>
-<p>那冰冷的手总会轻轻划过我们的脸庞</p>
-<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
-<p>追寻着希望下的光晕</p>
-<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
-<p>梦境的全貌已经触手就可及</p>
-<p>你愿意牺牲多少来一窥秘密</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>就用尸体骸骨铺路向前进</p>
-<p>那高墙对面存在着怎样的命运</p>
-<p>此刻唤起回忆中的童年憧憬</p>
-<p>真相就在眼前那咫尺的距离</p>
-<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
-<p>哭泣哀悼愤怒怨恨的伤悲</p>
-<p>反复地写入它记忆的终点</p>
-<p>自由是否可有也可无</p>
-<p>Ah-未来本应该有无限的道路</p>
-<p>宿命却催促踏上征途</p>
-<p>他们命运有如罗盘指向同个地方</p>
-<p>那究竟是谁的悲愿又是谁的梦想</p>
-<p>怨恨交织愤怒呐喊撕裂着心脏</p>
-<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
-<p>展开翅膀向着天际直冲而上</p>
-<p>恶魔在你耳边他奸诈地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>在天空那段存在着怎样的命运</p>
-<p>像是灯火般童年被囚禁的心</p>
-<p>如今火焰燃烧着真相与过往</p>
-<p>照亮那片尸体骸骨的前方</p>
-<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
-<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
-<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
-<p>每个步伐就承载了更多的梦</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>那黑暗之后存在着怎样的命运</p>
-<p>童年诅咒如今不再迂阔空虚</p>
-<p>何时才能实现那寄予的愿望</p>
-<p>就在跨过尸体骸骨的前方</p>
-<p>红莲的箭矢疾风呼啸而去</p>
-<p>散落满天的羽翼</p>
-<p>心脏就算撕裂贲张</p>
-<p>Requiem也不需要高声歌唱</p>
-<p>太阳在灵魂消逝西沉之前都不会落下</p>
-<p>勇敢的向前进吧</p>
-<p>向着波涛的彼方</p>
-<p>(END)</p>
-]]></content>
-      <categories>
-        <category>摸鱼</category>
-      </categories>
-      <tags>
-        <tag>摸鱼</tag>
       </tags>
   </entry>
 </search>

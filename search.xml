@@ -91,6 +91,114 @@
       </tags>
   </entry>
   <entry>
+    <title>Grpc系列学习(二)</title>
+    <url>/posts/8534/</url>
+    <content><![CDATA[<p>Grpc系列学习(二)</p>
+<p><strong>一切都是RPC</strong></p>
+<p>写在前面:因为1024CSDN写博客会有徽章,本人多少带点收集控,故正好整理出第二篇关于Grpc的学习文章.</p>
+<p>这次照例宣传一下我的个人博客:</p>
+<h3 id="demo"><a href="#demo" class="headerlink" title="demo:"></a>demo:</h3><h1 id="制作证书"><a href="#制作证书" class="headerlink" title="制作证书"></a><strong>制作证书</strong></h1><p>在服务端支持<code>Rpc</code>和<code>Restful Api</code>，需要用到<code>TLS</code>，因此我们要先制作证书</p>
+<p>进入<code>certs</code>目录，生成<code>TLS</code>所需的公钥密钥文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line"></span><br><span class="line">openssl ecparam -genkey -name secp384r1 -out server.key</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>openssl genrsa</code>：生成<code>RSA</code>私钥，命令的最后一个参数，将指定生成密钥的位数，如果没有指定，默认512</li>
+<li><code>openssl ecparam</code>：生成<code>ECC</code>私钥，命令为椭圆曲线密钥参数生成及操作，本文中<code>ECC</code>曲线选择的是<code>secp384r1</code></li>
+</ul>
+<h4 id="自签名公钥"><a href="#自签名公钥" class="headerlink" title="自签名公钥"></a>自签名公钥</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650</span><br></pre></td></tr></table></figure>
+
+<p><code>openssl req</code>：生成自签名证书，<code>-new</code>指生成证书请求、<code>-sha256</code>指使用<code>sha256</code>加密、<code>-key</code>指定私钥文件、<code>-x509</code>指输出证书、<code>-days 3650</code>为有效期，此后则输入证书拥有者信息</p>
+<h4 id="填写信息"><a href="#填写信息" class="headerlink" title="填写信息"></a>填写信息</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Country Name (2 letter code) [XX]:</span><br><span class="line">State or Province Name (full name) []:</span><br><span class="line">Locality Name (eg, city) [Default City]:</span><br><span class="line">Organization Name (eg, company) [Default Company Ltd]:</span><br><span class="line">Organizational Unit Name (eg, section) []:</span><br><span class="line">Common Name (eg, your name or your server&#39;s hostname) []:grpc server name</span><br><span class="line">Email Address []:</span><br></pre></td></tr></table></figure>
+
+<h3 id="Proto"><a href="#Proto" class="headerlink" title="Proto"></a>Proto</h3><h4 id="编写"><a href="#编写" class="headerlink" title="编写"></a>编写</h4><p>1.google.api</p>
+<p>我们看到<code>proto</code>目录中有<code>google/api</code>目录，它用到了<code>google</code>官方提供的两个<code>api</code>描述文件，主要是针对<code>grpc-gateway</code>的<code>http</code>转换提供支持，定义了<code>Protocol Buffer</code>所扩展的<code>HTTP Option</code></p>
+<p><code>annotations.proto</code>文件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright (c) 2015, Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line">​</span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line">​</span><br><span class="line">package google.api;</span><br><span class="line">​</span><br><span class="line">import &quot;google&#x2F;api&#x2F;http.proto&quot;;</span><br><span class="line">import &quot;google&#x2F;protobuf&#x2F;descriptor.proto&quot;;</span><br><span class="line">​</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;AnnotationsProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line">​</span><br><span class="line">extend google.protobuf.MethodOptions &#123;</span><br><span class="line">  &#x2F;&#x2F; See &#96;HttpRule&#96;.</span><br><span class="line">  HttpRule http &#x3D; 72295728;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>http.proto</code>文件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright 2016 Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line"></span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package google.api;</span><br><span class="line"></span><br><span class="line">option cc_enable_arenas &#x3D; true;</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;HttpProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Defines the HTTP configuration for a service. It contains a list of</span><br><span class="line">&#x2F;&#x2F; [HttpRule][google.api.HttpRule], each specifying the mapping of an RPC method</span><br><span class="line">&#x2F;&#x2F; to one or more HTTP REST API methods.</span><br><span class="line">message Http &#123;</span><br><span class="line">  &#x2F;&#x2F; A list of HTTP rules for configuring the HTTP REST API methods.</span><br><span class="line">  repeated HttpRule rules &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Use CustomHttpPattern to specify any HTTP method that is not included in the</span><br><span class="line">&#x2F;&#x2F; &#96;pattern&#96; field, such as HEAD, or &quot;*&quot; to leave the HTTP method unspecified for</span><br><span class="line">&#x2F;&#x2F; a given URL path rule. The wild-card rule is useful for services that provide</span><br><span class="line">&#x2F;&#x2F; content to Web (HTML) clients.</span><br><span class="line">message HttpRule &#123;</span><br><span class="line">  &#x2F;&#x2F; Selects methods to which this rule applies.</span><br><span class="line">  &#x2F;&#x2F;</span><br><span class="line">  &#x2F;&#x2F; Refer to [selector][google.api.DocumentationRule.selector] for syntax details.</span><br><span class="line">  string selector &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Determines the URL pattern is matched by this rules. This pattern can be</span><br><span class="line">  &#x2F;&#x2F; used with any of the &#123;get|put|post|delete|patch&#125; methods. A custom method</span><br><span class="line">  &#x2F;&#x2F; can be defined using the &#39;custom&#39; field.</span><br><span class="line">  oneof pattern &#123;</span><br><span class="line">    &#x2F;&#x2F; Used for listing and getting information about resources.</span><br><span class="line">    string get &#x3D; 2;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string put &#x3D; 3;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for creating a resource.</span><br><span class="line">    string post &#x3D; 4;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for deleting a resource.</span><br><span class="line">    string delete &#x3D; 5;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string patch &#x3D; 6;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Custom pattern is used for defining custom verbs.</span><br><span class="line">    CustomHttpPattern custom &#x3D; 8;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The name of the request field whose value is mapped to the HTTP body, or</span><br><span class="line">  &#x2F;&#x2F; &#96;*&#96; for mapping all fields not captured by the path pattern to the HTTP</span><br><span class="line">  &#x2F;&#x2F; body. NOTE: the referred field must not be a repeated field.</span><br><span class="line">  string body &#x3D; 7;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Additional HTTP bindings for the selector. Nested bindings must</span><br><span class="line">  &#x2F;&#x2F; not contain an &#96;additional_bindings&#96; field themselves (that is,</span><br><span class="line">  &#x2F;&#x2F; the nesting may only be one level deep).</span><br><span class="line">  repeated HttpRule additional_bindings &#x3D; 11;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; A custom pattern is used for defining custom HTTP verb.</span><br><span class="line">message CustomHttpPattern &#123;</span><br><span class="line">  &#x2F;&#x2F; The name of this custom HTTP verb.</span><br><span class="line">  string kind &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The path matched by this custom verb.</span><br><span class="line">  string path &#x3D; 2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><code>hello.proto</code></li>
+</ol>
+<p>这一小节将编写<code>Demo</code>的<code>.proto</code>文件，我们在<code>proto</code>目录下新建<code>hello.proto</code>文件，写入文件内容：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package proto;</span><br><span class="line"></span><br><span class="line">import &quot;google&#x2F;api&#x2F;annotations.proto&quot;;</span><br><span class="line"></span><br><span class="line">service HelloWorld &#123;</span><br><span class="line">    rpc SayHelloWorld(HelloWorldRequest) returns (HelloWorldResponse) &#123;</span><br><span class="line">        option (google.api.http) &#x3D; &#123;</span><br><span class="line">            post: &quot;&#x2F;hello_world&quot;</span><br><span class="line">            body: &quot;*&quot;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldRequest &#123;</span><br><span class="line">    string referer &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldResponse &#123;</span><br><span class="line">    string message &#x3D; 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在<code>hello.proto</code>文件中，引用了<code>google/api/annotations.proto</code>，达到支持<code>HTTP Option</code>的效果</p>
+<ul>
+<li>定义了一个<code>service</code>RPC服务<code>HelloWorld</code>，在其内部定义了一个<code>HTTP Option</code>的<code>POST</code>方法，<code>HTTP</code>响应路径为<code>/hello_world</code></li>
+<li>定义<code>message</code>类型<code>HelloWorldRequest</code>、<code>HelloWorldResponse</code>，用于响应请求和返回结果</li>
+</ul>
+<h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a><strong>编译</strong></h2><p>在编写完<code>.proto</code>文件后，我们需要对其进行编译，就能够在<code>server</code>中使用</p>
+<p>进入<code>proto</code>目录，执行以下命令</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 编译google.api</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;protobuf&#x2F;descriptor.proto&#x3D;github.com&#x2F;golang&#x2F;protobuf&#x2F;protoc-gen-go&#x2F;descriptor:. google&#x2F;api&#x2F;*.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.proto</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;api&#x2F;annotations.proto&#x3D;grpc-hello-world&#x2F;proto&#x2F;google&#x2F;api:. .&#x2F;hello.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.gw.proto</span><br><span class="line">protoc --grpc-gateway_out&#x3D;logtostderr&#x3D;true:. .&#x2F;hello.proto</span><br></pre></td></tr></table></figure>
+
+<p>执行完毕后将生成<code>hello.pb.go</code>和<code>hello.gw.pb.go</code>，分别针对<code>grpc</code>和<code>grpc-gateway</code>的功能支持</p>
+<h3 id="命令行模块-cmd"><a href="#命令行模块-cmd" class="headerlink" title="命令行模块 cmd"></a><strong>命令行模块</strong> <code>cmd</code></h3><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a><strong>介绍</strong></h2><p>这一小节我们编写命令行模块，为什么要独立出来呢，是为了将<code>cmd</code>和<code>server</code>两者解耦，避免混淆在一起。</p>
+<p>我们采用 <a href="https://github.com/spf13/cobra" target="_blank" rel="noopener">Cobra</a> 来完成这项功能，<code>Cobra</code>既是创建强大的现代CLI应用程序的库，也是生成应用程序和命令文件的程序。提供了以下功能：</p>
+<ul>
+<li>简易的子命令行模式</li>
+<li>完全兼容posix的命令行模式(包括短和长版本)</li>
+<li>嵌套的子命令</li>
+<li>全局、本地和级联<code>flags</code></li>
+<li>使用<code>Cobra</code>很容易的生成应用程序和命令，使用<code>cobra create appname</code>和<code>cobra add cmdname</code></li>
+<li>智能提示</li>
+<li>自动生成commands和flags的帮助信息</li>
+<li>自动生成详细的help信息<code>-h</code>，<code>--help</code>等等</li>
+<li>自动生成的bash自动完成功能</li>
+<li>为应用程序自动生成手册</li>
+<li>命令别名</li>
+<li>定义您自己的帮助、用法等的灵活性。</li>
+<li>可选与<a href="https://github.com/spf13/viper" target="_blank" rel="noopener">viper</a>紧密集成的apps</li>
+</ul>
+<p>—选自某百科</p>
+<h2 id="编写server"><a href="#编写server" class="headerlink" title="编写server"></a><strong>编写<code>server</code></strong></h2><p>在编写<code>cmd</code>时需要先用<code>server</code>进行测试关联，因此这一步我们先写<code>server.go</code>用于测试</p>
+<p>在<code>server</code>模块下 新建<code>server.go</code>文件，写入测试内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> server</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    ServerPort <span class="keyword">string</span></span><br><span class="line">    CertName <span class="keyword">string</span></span><br><span class="line">    CertPemPath <span class="keyword">string</span></span><br><span class="line">    CertKeyPath <span class="keyword">string</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Serve</span><span class="params">()</span> <span class="params">(err error)</span></span>&#123;</span><br><span class="line">    log.Println(ServerPort)</span><br><span class="line"></span><br><span class="line">    log.Println(CertName)</span><br><span class="line"></span><br><span class="line">    log.Println(CertPemPath)</span><br><span class="line"></span><br><span class="line">    log.Println(CertKeyPath)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编写cmd"><a href="#编写cmd" class="headerlink" title="编写cmd"></a><strong>编写<code>cmd</code></strong></h2><p>在<code>cmd</code>模块下 新建<code>root.go</code>文件，写入内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"os"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> rootCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"grpc"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Execute</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> err := rootCmd.Execute(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(err)</span><br><span class="line">        os.Exit(<span class="number">-1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>emmm….这个官网的Hello World还是有点多的,今天就不写了~~</p>
+<p>新建<code>server.go</code>文件，写入内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"grpc-hello-world/server"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> serverCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"server"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">    Run: <span class="function"><span class="keyword">func</span><span class="params">(cmd *cobra.Command, args []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                log.Println(<span class="string">"Recover error : %v"</span>, err)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;()</span><br><span class="line"></span><br><span class="line">        server.Serve()</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.ServerPort, <span class="string">"port"</span>, <span class="string">"p"</span>, <span class="string">"50052"</span>, <span class="string">"server port"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertPemPath, <span class="string">"cert-pem"</span>, <span class="string">""</span>, <span class="string">"./certs/server.pem"</span>, <span class="string">"cert pem path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertKeyPath, <span class="string">"cert-key"</span>, <span class="string">""</span>, <span class="string">"./certs/server.key"</span>, <span class="string">"cert key path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertName, <span class="string">"cert-name"</span>, <span class="string">""</span>, <span class="string">"grpc server name"</span>, <span class="string">"server's hostname"</span>)</span><br><span class="line">    rootCmd.AddCommand(serverCmd)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们在<code>grpc-hello-world/</code>目录下，新建文件<code>main.go</code>，写入内容：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;grpc-hello-world&#x2F;cmd&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    cmd.Execute()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="讲解"><a href="#讲解" class="headerlink" title="讲解"></a><strong>讲解</strong></h2><p>要使用<code>Cobra</code>，按照<code>Cobra</code>标准要创建<code>main.go</code>和一个<code>rootCmd</code>文件，另外我们有子命令<code>server</code></p>
+<p>1、<code>rootCmd</code>： <code>rootCmd</code>表示在没有任何子命令的情况下的基本命令</p>
+<p>2、<code>&amp;cobra.Command</code>：</p>
+<ul>
+<li><code>Use</code>：<code>Command</code>的用法，<code>Use</code>是一个行用法消息</li>
+<li><code>Short</code>：<code>Short</code>是<code>help</code>命令输出中显示的简短描述</li>
+<li><code>Run</code>：运行:典型的实际工作功能。大多数命令只会实现这一点；另外还有<code>PreRun</code>、<code>PreRunE</code>、<code>PostRun</code>、<code>PostRunE</code>等等不同时期的运行命令，但比较少用，具体使用时再查看亦可</li>
+</ul>
+<p>3、<code>rootCmd.AddCommand</code>：<code>AddCommand</code>向这父命令（<code>rootCmd</code>）添加一个或多个命令</p>
+<p>4、<code>serverCmd.Flags().StringVarP()</code>：</p>
+<p>一般来说，我们需要在<code>init()</code>函数中定义<code>flags</code>和处理配置，以<code>serverCmd.Flags().StringVarP(&amp;server.ServerPort, &quot;port&quot;, &quot;p&quot;, &quot;50052&quot;, &quot;server port&quot;)</code>为例，我们定义了一个<code>flag</code>，值存储在<code>&amp;server.ServerPort</code>中，长命令为<code>--port</code>，短命令为<code>-p</code>，，默认值为<code>50052</code>，命令的描述为<code>server port</code>。这一种调用方式成为<code>Local Flags</code></p>
+<p>我们延伸一下，如果觉得每一个子命令都要设一遍觉得很麻烦，我们可以采用<code>Persistent Flags</code>：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">rootCmd.PersistentFlags().BoolVarP(&amp;Verbose, &quot;verbose&quot;, &quot;v&quot;, false, &quot;verbose output&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>作用：</p>
+<p><code>flag</code>是可以持久的，这意味着该<code>flag</code>将被分配给它所分配的命令以及该命令下的每个命令。对于全局标记，将标记作为根上的持久标志。</p>
+<p>另外还有<code>Local Flag on Parent Commands</code>、<code>Bind Flags with Config</code>、<code>Required flags</code>等等，使用到再 <a href="https://github.com/spf13/cobra#local-flag-on-parent-commands" target="_blank" rel="noopener">传送</a> 了解即可</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a><strong>测试</strong></h2><p>回到<code>grpc-hello-world/</code>目录下执行<code>go run main.go server</code>，查看输出是否为（此时应为默认值）：</p>
+<p>咕咕</p>
+<p>@copyright ————baijianruoliorz@Github——————————–</p>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>Grpc</tag>
+        <tag>blog</tag>
+        <tag>分布式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Stop Worship others</title>
     <url>/posts/14526/</url>
     <content><![CDATA[<h6 id="Stop-Worship-others"><a href="#Stop-Worship-others" class="headerlink" title="Stop Worship others"></a>Stop Worship others</h6><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/"  alt="img"></p>
@@ -249,111 +357,31 @@
       </tags>
   </entry>
   <entry>
-    <title>Grpc系列学习(二)</title>
-    <url>/posts/8534/</url>
-    <content><![CDATA[<p>Grpc系列学习(二)</p>
-<p><strong>一切都是RPC</strong></p>
-<p>写在前面:因为1024CSDN写博客会有徽章,本人多少带点收集控,故正好整理出第二篇关于Grpc的学习文章.</p>
-<p>这次照例宣传一下我的个人博客:</p>
-<h3 id="demo"><a href="#demo" class="headerlink" title="demo:"></a>demo:</h3><h1 id="制作证书"><a href="#制作证书" class="headerlink" title="制作证书"></a><strong>制作证书</strong></h1><p>在服务端支持<code>Rpc</code>和<code>Restful Api</code>，需要用到<code>TLS</code>，因此我们要先制作证书</p>
-<p>进入<code>certs</code>目录，生成<code>TLS</code>所需的公钥密钥文件</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line"></span><br><span class="line">openssl ecparam -genkey -name secp384r1 -out server.key</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>openssl genrsa</code>：生成<code>RSA</code>私钥，命令的最后一个参数，将指定生成密钥的位数，如果没有指定，默认512</li>
-<li><code>openssl ecparam</code>：生成<code>ECC</code>私钥，命令为椭圆曲线密钥参数生成及操作，本文中<code>ECC</code>曲线选择的是<code>secp384r1</code></li>
-</ul>
-<h4 id="自签名公钥"><a href="#自签名公钥" class="headerlink" title="自签名公钥"></a>自签名公钥</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650</span><br></pre></td></tr></table></figure>
-
-<p><code>openssl req</code>：生成自签名证书，<code>-new</code>指生成证书请求、<code>-sha256</code>指使用<code>sha256</code>加密、<code>-key</code>指定私钥文件、<code>-x509</code>指输出证书、<code>-days 3650</code>为有效期，此后则输入证书拥有者信息</p>
-<h4 id="填写信息"><a href="#填写信息" class="headerlink" title="填写信息"></a>填写信息</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Country Name (2 letter code) [XX]:</span><br><span class="line">State or Province Name (full name) []:</span><br><span class="line">Locality Name (eg, city) [Default City]:</span><br><span class="line">Organization Name (eg, company) [Default Company Ltd]:</span><br><span class="line">Organizational Unit Name (eg, section) []:</span><br><span class="line">Common Name (eg, your name or your server&#39;s hostname) []:grpc server name</span><br><span class="line">Email Address []:</span><br></pre></td></tr></table></figure>
-
-<h3 id="Proto"><a href="#Proto" class="headerlink" title="Proto"></a>Proto</h3><h4 id="编写"><a href="#编写" class="headerlink" title="编写"></a>编写</h4><p>1.google.api</p>
-<p>我们看到<code>proto</code>目录中有<code>google/api</code>目录，它用到了<code>google</code>官方提供的两个<code>api</code>描述文件，主要是针对<code>grpc-gateway</code>的<code>http</code>转换提供支持，定义了<code>Protocol Buffer</code>所扩展的<code>HTTP Option</code></p>
-<p><code>annotations.proto</code>文件：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright (c) 2015, Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line">​</span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line">​</span><br><span class="line">package google.api;</span><br><span class="line">​</span><br><span class="line">import &quot;google&#x2F;api&#x2F;http.proto&quot;;</span><br><span class="line">import &quot;google&#x2F;protobuf&#x2F;descriptor.proto&quot;;</span><br><span class="line">​</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;AnnotationsProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line">​</span><br><span class="line">extend google.protobuf.MethodOptions &#123;</span><br><span class="line">  &#x2F;&#x2F; See &#96;HttpRule&#96;.</span><br><span class="line">  HttpRule http &#x3D; 72295728;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>http.proto</code>文件：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright 2016 Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line"></span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package google.api;</span><br><span class="line"></span><br><span class="line">option cc_enable_arenas &#x3D; true;</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;HttpProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Defines the HTTP configuration for a service. It contains a list of</span><br><span class="line">&#x2F;&#x2F; [HttpRule][google.api.HttpRule], each specifying the mapping of an RPC method</span><br><span class="line">&#x2F;&#x2F; to one or more HTTP REST API methods.</span><br><span class="line">message Http &#123;</span><br><span class="line">  &#x2F;&#x2F; A list of HTTP rules for configuring the HTTP REST API methods.</span><br><span class="line">  repeated HttpRule rules &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Use CustomHttpPattern to specify any HTTP method that is not included in the</span><br><span class="line">&#x2F;&#x2F; &#96;pattern&#96; field, such as HEAD, or &quot;*&quot; to leave the HTTP method unspecified for</span><br><span class="line">&#x2F;&#x2F; a given URL path rule. The wild-card rule is useful for services that provide</span><br><span class="line">&#x2F;&#x2F; content to Web (HTML) clients.</span><br><span class="line">message HttpRule &#123;</span><br><span class="line">  &#x2F;&#x2F; Selects methods to which this rule applies.</span><br><span class="line">  &#x2F;&#x2F;</span><br><span class="line">  &#x2F;&#x2F; Refer to [selector][google.api.DocumentationRule.selector] for syntax details.</span><br><span class="line">  string selector &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Determines the URL pattern is matched by this rules. This pattern can be</span><br><span class="line">  &#x2F;&#x2F; used with any of the &#123;get|put|post|delete|patch&#125; methods. A custom method</span><br><span class="line">  &#x2F;&#x2F; can be defined using the &#39;custom&#39; field.</span><br><span class="line">  oneof pattern &#123;</span><br><span class="line">    &#x2F;&#x2F; Used for listing and getting information about resources.</span><br><span class="line">    string get &#x3D; 2;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string put &#x3D; 3;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for creating a resource.</span><br><span class="line">    string post &#x3D; 4;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for deleting a resource.</span><br><span class="line">    string delete &#x3D; 5;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string patch &#x3D; 6;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Custom pattern is used for defining custom verbs.</span><br><span class="line">    CustomHttpPattern custom &#x3D; 8;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The name of the request field whose value is mapped to the HTTP body, or</span><br><span class="line">  &#x2F;&#x2F; &#96;*&#96; for mapping all fields not captured by the path pattern to the HTTP</span><br><span class="line">  &#x2F;&#x2F; body. NOTE: the referred field must not be a repeated field.</span><br><span class="line">  string body &#x3D; 7;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Additional HTTP bindings for the selector. Nested bindings must</span><br><span class="line">  &#x2F;&#x2F; not contain an &#96;additional_bindings&#96; field themselves (that is,</span><br><span class="line">  &#x2F;&#x2F; the nesting may only be one level deep).</span><br><span class="line">  repeated HttpRule additional_bindings &#x3D; 11;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; A custom pattern is used for defining custom HTTP verb.</span><br><span class="line">message CustomHttpPattern &#123;</span><br><span class="line">  &#x2F;&#x2F; The name of this custom HTTP verb.</span><br><span class="line">  string kind &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The path matched by this custom verb.</span><br><span class="line">  string path &#x3D; 2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><code>hello.proto</code></li>
-</ol>
-<p>这一小节将编写<code>Demo</code>的<code>.proto</code>文件，我们在<code>proto</code>目录下新建<code>hello.proto</code>文件，写入文件内容：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package proto;</span><br><span class="line"></span><br><span class="line">import &quot;google&#x2F;api&#x2F;annotations.proto&quot;;</span><br><span class="line"></span><br><span class="line">service HelloWorld &#123;</span><br><span class="line">    rpc SayHelloWorld(HelloWorldRequest) returns (HelloWorldResponse) &#123;</span><br><span class="line">        option (google.api.http) &#x3D; &#123;</span><br><span class="line">            post: &quot;&#x2F;hello_world&quot;</span><br><span class="line">            body: &quot;*&quot;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldRequest &#123;</span><br><span class="line">    string referer &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldResponse &#123;</span><br><span class="line">    string message &#x3D; 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>在<code>hello.proto</code>文件中，引用了<code>google/api/annotations.proto</code>，达到支持<code>HTTP Option</code>的效果</p>
-<ul>
-<li>定义了一个<code>service</code>RPC服务<code>HelloWorld</code>，在其内部定义了一个<code>HTTP Option</code>的<code>POST</code>方法，<code>HTTP</code>响应路径为<code>/hello_world</code></li>
-<li>定义<code>message</code>类型<code>HelloWorldRequest</code>、<code>HelloWorldResponse</code>，用于响应请求和返回结果</li>
-</ul>
-<h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a><strong>编译</strong></h2><p>在编写完<code>.proto</code>文件后，我们需要对其进行编译，就能够在<code>server</code>中使用</p>
-<p>进入<code>proto</code>目录，执行以下命令</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 编译google.api</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;protobuf&#x2F;descriptor.proto&#x3D;github.com&#x2F;golang&#x2F;protobuf&#x2F;protoc-gen-go&#x2F;descriptor:. google&#x2F;api&#x2F;*.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.proto</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;api&#x2F;annotations.proto&#x3D;grpc-hello-world&#x2F;proto&#x2F;google&#x2F;api:. .&#x2F;hello.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.gw.proto</span><br><span class="line">protoc --grpc-gateway_out&#x3D;logtostderr&#x3D;true:. .&#x2F;hello.proto</span><br></pre></td></tr></table></figure>
-
-<p>执行完毕后将生成<code>hello.pb.go</code>和<code>hello.gw.pb.go</code>，分别针对<code>grpc</code>和<code>grpc-gateway</code>的功能支持</p>
-<h3 id="命令行模块-cmd"><a href="#命令行模块-cmd" class="headerlink" title="命令行模块 cmd"></a><strong>命令行模块</strong> <code>cmd</code></h3><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a><strong>介绍</strong></h2><p>这一小节我们编写命令行模块，为什么要独立出来呢，是为了将<code>cmd</code>和<code>server</code>两者解耦，避免混淆在一起。</p>
-<p>我们采用 <a href="https://github.com/spf13/cobra" target="_blank" rel="noopener">Cobra</a> 来完成这项功能，<code>Cobra</code>既是创建强大的现代CLI应用程序的库，也是生成应用程序和命令文件的程序。提供了以下功能：</p>
-<ul>
-<li>简易的子命令行模式</li>
-<li>完全兼容posix的命令行模式(包括短和长版本)</li>
-<li>嵌套的子命令</li>
-<li>全局、本地和级联<code>flags</code></li>
-<li>使用<code>Cobra</code>很容易的生成应用程序和命令，使用<code>cobra create appname</code>和<code>cobra add cmdname</code></li>
-<li>智能提示</li>
-<li>自动生成commands和flags的帮助信息</li>
-<li>自动生成详细的help信息<code>-h</code>，<code>--help</code>等等</li>
-<li>自动生成的bash自动完成功能</li>
-<li>为应用程序自动生成手册</li>
-<li>命令别名</li>
-<li>定义您自己的帮助、用法等的灵活性。</li>
-<li>可选与<a href="https://github.com/spf13/viper" target="_blank" rel="noopener">viper</a>紧密集成的apps</li>
-</ul>
-<p>—选自某百科</p>
-<h2 id="编写server"><a href="#编写server" class="headerlink" title="编写server"></a><strong>编写<code>server</code></strong></h2><p>在编写<code>cmd</code>时需要先用<code>server</code>进行测试关联，因此这一步我们先写<code>server.go</code>用于测试</p>
-<p>在<code>server</code>模块下 新建<code>server.go</code>文件，写入测试内容：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> server</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    ServerPort <span class="keyword">string</span></span><br><span class="line">    CertName <span class="keyword">string</span></span><br><span class="line">    CertPemPath <span class="keyword">string</span></span><br><span class="line">    CertKeyPath <span class="keyword">string</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Serve</span><span class="params">()</span> <span class="params">(err error)</span></span>&#123;</span><br><span class="line">    log.Println(ServerPort)</span><br><span class="line"></span><br><span class="line">    log.Println(CertName)</span><br><span class="line"></span><br><span class="line">    log.Println(CertPemPath)</span><br><span class="line"></span><br><span class="line">    log.Println(CertKeyPath)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="编写cmd"><a href="#编写cmd" class="headerlink" title="编写cmd"></a><strong>编写<code>cmd</code></strong></h2><p>在<code>cmd</code>模块下 新建<code>root.go</code>文件，写入内容：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"os"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> rootCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"grpc"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Execute</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> err := rootCmd.Execute(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(err)</span><br><span class="line">        os.Exit(<span class="number">-1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>emmm….这个官网的Hello World还是有点多的,今天就不写了~~</p>
-<p>新建<code>server.go</code>文件，写入内容：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"grpc-hello-world/server"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> serverCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"server"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">    Run: <span class="function"><span class="keyword">func</span><span class="params">(cmd *cobra.Command, args []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                log.Println(<span class="string">"Recover error : %v"</span>, err)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;()</span><br><span class="line"></span><br><span class="line">        server.Serve()</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.ServerPort, <span class="string">"port"</span>, <span class="string">"p"</span>, <span class="string">"50052"</span>, <span class="string">"server port"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertPemPath, <span class="string">"cert-pem"</span>, <span class="string">""</span>, <span class="string">"./certs/server.pem"</span>, <span class="string">"cert pem path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertKeyPath, <span class="string">"cert-key"</span>, <span class="string">""</span>, <span class="string">"./certs/server.key"</span>, <span class="string">"cert key path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertName, <span class="string">"cert-name"</span>, <span class="string">""</span>, <span class="string">"grpc server name"</span>, <span class="string">"server's hostname"</span>)</span><br><span class="line">    rootCmd.AddCommand(serverCmd)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们在<code>grpc-hello-world/</code>目录下，新建文件<code>main.go</code>，写入内容：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;grpc-hello-world&#x2F;cmd&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    cmd.Execute()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="讲解"><a href="#讲解" class="headerlink" title="讲解"></a><strong>讲解</strong></h2><p>要使用<code>Cobra</code>，按照<code>Cobra</code>标准要创建<code>main.go</code>和一个<code>rootCmd</code>文件，另外我们有子命令<code>server</code></p>
-<p>1、<code>rootCmd</code>： <code>rootCmd</code>表示在没有任何子命令的情况下的基本命令</p>
-<p>2、<code>&amp;cobra.Command</code>：</p>
-<ul>
-<li><code>Use</code>：<code>Command</code>的用法，<code>Use</code>是一个行用法消息</li>
-<li><code>Short</code>：<code>Short</code>是<code>help</code>命令输出中显示的简短描述</li>
-<li><code>Run</code>：运行:典型的实际工作功能。大多数命令只会实现这一点；另外还有<code>PreRun</code>、<code>PreRunE</code>、<code>PostRun</code>、<code>PostRunE</code>等等不同时期的运行命令，但比较少用，具体使用时再查看亦可</li>
-</ul>
-<p>3、<code>rootCmd.AddCommand</code>：<code>AddCommand</code>向这父命令（<code>rootCmd</code>）添加一个或多个命令</p>
-<p>4、<code>serverCmd.Flags().StringVarP()</code>：</p>
-<p>一般来说，我们需要在<code>init()</code>函数中定义<code>flags</code>和处理配置，以<code>serverCmd.Flags().StringVarP(&amp;server.ServerPort, &quot;port&quot;, &quot;p&quot;, &quot;50052&quot;, &quot;server port&quot;)</code>为例，我们定义了一个<code>flag</code>，值存储在<code>&amp;server.ServerPort</code>中，长命令为<code>--port</code>，短命令为<code>-p</code>，，默认值为<code>50052</code>，命令的描述为<code>server port</code>。这一种调用方式成为<code>Local Flags</code></p>
-<p>我们延伸一下，如果觉得每一个子命令都要设一遍觉得很麻烦，我们可以采用<code>Persistent Flags</code>：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">rootCmd.PersistentFlags().BoolVarP(&amp;Verbose, &quot;verbose&quot;, &quot;v&quot;, false, &quot;verbose output&quot;)</span><br></pre></td></tr></table></figure>
-
-<p>作用：</p>
-<p><code>flag</code>是可以持久的，这意味着该<code>flag</code>将被分配给它所分配的命令以及该命令下的每个命令。对于全局标记，将标记作为根上的持久标志。</p>
-<p>另外还有<code>Local Flag on Parent Commands</code>、<code>Bind Flags with Config</code>、<code>Required flags</code>等等，使用到再 <a href="https://github.com/spf13/cobra#local-flag-on-parent-commands" target="_blank" rel="noopener">传送</a> 了解即可</p>
-<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a><strong>测试</strong></h2><p>回到<code>grpc-hello-world/</code>目录下执行<code>go run main.go server</code>，查看输出是否为（此时应为默认值）：</p>
-<p>咕咕</p>
-<p>@copyright ————baijianruoliorz@Github——————————–</p>
+    <title>Wizz工作室面基大会</title>
+    <url>/posts/37390/</url>
+    <content><![CDATA[<h3 id="Wizz工作室面基大会"><a href="#Wizz工作室面基大会" class="headerlink" title="Wizz工作室面基大会"></a>Wizz工作室面基大会</h3><p>10月16号,我参加了Wizz的面基大会.</p>
+<p>有一说一,之前对这种”<del>ST</del>式”讨论向来是抵制的,不过从今晚来看,感觉的确有很大的作用.</p>
+<p>首先是17级转正阿里的TY学长，讲了自己加入为之三年来的成长。<del>阿里真的是我超级心水的公司 当然宇宙条也是</del>.希望自己能成为像学长一样厉害的人吧.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005336.jpg"  alt=""></p>
+<p>然后是18级JF学姐，<del>讲太多了</del>讲的内容丰富又让人深思联想.身为Wizz’s leader的她让我开始重新审视”产品”这个职位.(插一句话:开完面基会后与<del>BB酱</del>讨论了相关事宜,,总之我也表达不出来,产品真的是十分有必要的存在,JF学姐的控场能力也超强的.)<del>不过重点是人也漂亮</del></p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005329.jpg"  alt=""></p>
+<p>最后一个<del>突然流水账了起来</del>是我respect的QHT(因为太瑞思拜所以直接打出全名也是理所当然的,ssfd),身为Wizz技术负责人(orzorzorzorzorz(RTWG)当然经常让我直接没事就膜拜他的code.</p>
+<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005339.jpg"  alt=""></p>
+<p>以上是学长/姐 们的巨佬发言.</p>
+<p>中途大家都轮流简单介绍了自己.令我印象深刻的是拿了BAT三家offer的学姐orzorzorzorz.</p>
+<p>接下来就是Z老师了,以及Z老师三个超级强的同事,出口就是某力D总级别的,因为讲话的人太巨了(<del>没有想去WC这回事</del>)所以听的有点迷,总之就是十分dick的那种感觉.老师的照片就不放了,<del>考虑到知名度</del>.</p>
+<p>结束的时候大家又去211自由谈论了一会儿,认识了十分可爱又强大的<del>BB酱</del>,因为之前在某实验班面试过我所以还是想深♂入了解一下<del>BB酱</del>.聊着聊着BB酱真的是巨.我只能在旁边疯狂/kk.</p>
+<p>本来想和QHT学长也深♂入交流一下,结果他好像很忙/kk. </p>
+<p>接着认识了DB的开发者.我GitHub单向fo的巨佬(TG行为真的是呜呜)/kk.</p>
+<p>呜呜嘤,好多巨佬啊.萌新只能在一旁ssfd.</p>
+<p>Concluded: 我是最菜的了./kk.</p>
 ]]></content>
       <categories>
-        <category>分布式</category>
+        <category>Wizz</category>
       </categories>
       <tags>
-        <tag>Grpc</tag>
         <tag>blog</tag>
-        <tag>分布式</tag>
+        <tag>夜谈</tag>
       </tags>
   </entry>
   <entry>
@@ -383,36 +411,8 @@
       </tags>
   </entry>
   <entry>
-    <title>Wizz工作室面基大会</title>
-    <url>/posts/37390/</url>
-    <content><![CDATA[<h3 id="Wizz工作室面基大会"><a href="#Wizz工作室面基大会" class="headerlink" title="Wizz工作室面基大会"></a>Wizz工作室面基大会</h3><p>10月16号,我参加了Wizz的面基大会.</p>
-<p>有一说一,之前对这种”<del>ST</del>式”讨论向来是抵制的,不过从今晚来看,感觉的确有很大的作用.</p>
-<p>首先是17级转正阿里的TY学长，讲了自己加入为之三年来的成长。<del>阿里真的是我超级心水的公司 当然宇宙条也是</del>.希望自己能成为像学长一样厉害的人吧.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005336.jpg"  alt=""></p>
-<p>然后是18级JF学姐，<del>讲太多了</del>讲的内容丰富又让人深思联想.身为Wizz’s leader的她让我开始重新审视”产品”这个职位.(插一句话:开完面基会后与<del>BB酱</del>讨论了相关事宜,,总之我也表达不出来,产品真的是十分有必要的存在,JF学姐的控场能力也超强的.)<del>不过重点是人也漂亮</del></p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005329.jpg"  alt=""></p>
-<p>最后一个<del>突然流水账了起来</del>是我respect的QHT(因为太瑞思拜所以直接打出全名也是理所当然的,ssfd),身为Wizz技术负责人(orzorzorzorzorz(RTWG)当然经常让我直接没事就膜拜他的code.</p>
-<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/QQ%E5%9B%BE%E7%89%8720201017005339.jpg"  alt=""></p>
-<p>以上是学长/姐 们的巨佬发言.</p>
-<p>中途大家都轮流简单介绍了自己.令我印象深刻的是拿了BAT三家offer的学姐orzorzorzorz.</p>
-<p>接下来就是Z老师了,以及Z老师三个超级强的同事,出口就是某力D总级别的,因为讲话的人太巨了(<del>没有想去WC这回事</del>)所以听的有点迷,总之就是十分dick的那种感觉.老师的照片就不放了,<del>考虑到知名度</del>.</p>
-<p>结束的时候大家又去211自由谈论了一会儿,认识了十分可爱又强大的<del>BB酱</del>,因为之前在某实验班面试过我所以还是想深♂入了解一下<del>BB酱</del>.聊着聊着BB酱真的是巨.我只能在旁边疯狂/kk.</p>
-<p>本来想和QHT学长也深♂入交流一下,结果他好像很忙/kk. </p>
-<p>接着认识了DB的开发者.我GitHub单向fo的巨佬(TG行为真的是呜呜)/kk.</p>
-<p>呜呜嘤,好多巨佬啊.萌新只能在一旁ssfd.</p>
-<p>Concluded: 我是最菜的了./kk.</p>
-]]></content>
-      <categories>
-        <category>Wizz</category>
-      </categories>
-      <tags>
-        <tag>blog</tag>
-        <tag>夜谈</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>为之后端冬令营</title>
-    <url>/posts/57842/</url>
+    <url>/posts/3794/</url>
     <content><![CDATA[<p>为之2021冬令营–&gt;后端方向</p>
 <h2 id="应该是前言一样的存在"><a href="#应该是前言一样的存在" class="headerlink" title="应该是前言一样的存在"></a><strong>应该是前言一样的存在</strong></h2><p>前段时间浩天学长跟我说了手有没有兴趣做一做为之后端的冬令营,出于好奇以及<del>责任感</del>我答应了下来.正巧一是现在复习文化课没什么动力,二是自己的博客水文似乎很久没有去水一篇了,所以打算写个大致的规划.</p>
 <p>看了一手浩天学长的2020年冬季的冬令营文章.觉得珠玉在前的同时也深感压力.(<del>可能因为我很多不会吧</del>)</p>
@@ -455,28 +455,67 @@
       </tags>
   </entry>
   <entry>
-    <title>写在十八岁之际</title>
-    <url>/posts/22741/</url>
-    <content><![CDATA[<h2 id="写在十八岁之际"><a href="#写在十八岁之际" class="headerlink" title="写在十八岁之际:"></a>写在十八岁之际:</h2><p>从今天开始就要正式成为成年人了<del>QAQ(成年人不允许这种颜文字</del></p>
-<p>没想到写到第二句我就不知道说些什么了,我果然只适合写一些FD的言论.</p>
-<p>今年是个令我有很大成长的一年,也是我来到XDU的第二年,不得不说XDU至少在搞机这方</p>
-<p>面的氛围可以作为来这里的重要原因.也结识了几个很会搞机的学长(其实也有<del>学姐</del>,但</p>
-<p>她们code能力多少弱一些)</p>
-<p>想来来这里的第一年和今年心态有很大变化,不会因为我更<del>mature</del>了吧.也更加坚定</p>
-<p>了自己未来的目标,个人觉得还是对宇宙机与技术很感兴趣.但是因为这是一篇生日水文</p>
-<p>所以严肃一些的话题不予讨论.</p>
-<p>我果然不适合写这种一本正经的文章,进入带学撸码一年已经丧失了写作能力…</p>
-<p>那就放几个我的项目吧,希望未来能一直走下去.</p>
-<p><a href="https://github.com/baijianruoliorz/mengnanClass" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=mengnanClass"  alt="ReadMe Card"></a></p>
-<p><a href="https://github.com/baijianruoliorz/bluebell" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=bluebell"  alt="ReadMe Card"></a>    </p>
-<p><a href="https://github.com/baijianruoliorz/renting_springboot" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=renting_springboot"  alt="ReadMe Card"></a></p>
-<p>使命は、何としても完成するのか.</p>
+    <title>憧憬と尸の道</title>
+    <url>/posts/13965/</url>
+    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
+<p>人类的记忆那一天已苏醒</p>
+<p>夜幕中摇晃的身影虚幻的步伐</p>
+<p>忐忑不安踏着声响</p>
+<p>无法掌握他梦中想看见的未来</p>
+<p>却在薄冰上绽放</p>
+<p>每当太阳西沉黑暗夜幕已降下</p>
+<p>那冰冷的手总会轻轻划过我们的脸庞</p>
+<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
+<p>追寻着希望下的光晕</p>
+<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
+<p>梦境的全貌已经触手就可及</p>
+<p>你愿意牺牲多少来一窥秘密</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>就用尸体骸骨铺路向前进</p>
+<p>那高墙对面存在着怎样的命运</p>
+<p>此刻唤起回忆中的童年憧憬</p>
+<p>真相就在眼前那咫尺的距离</p>
+<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
+<p>哭泣哀悼愤怒怨恨的伤悲</p>
+<p>反复地写入它记忆的终点</p>
+<p>自由是否可有也可无</p>
+<p>Ah-未来本应该有无限的道路</p>
+<p>宿命却催促踏上征途</p>
+<p>他们命运有如罗盘指向同个地方</p>
+<p>那究竟是谁的悲愿又是谁的梦想</p>
+<p>怨恨交织愤怒呐喊撕裂着心脏</p>
+<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
+<p>展开翅膀向着天际直冲而上</p>
+<p>恶魔在你耳边他奸诈地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>在天空那段存在着怎样的命运</p>
+<p>像是灯火般童年被囚禁的心</p>
+<p>如今火焰燃烧着真相与过往</p>
+<p>照亮那片尸体骸骨的前方</p>
+<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
+<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
+<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
+<p>每个步伐就承载了更多的梦</p>
+<p>恶魔在你耳边他轻声地歌唱</p>
+<p>踏着尸体骸骨道路前进吧</p>
+<p>那黑暗之后存在着怎样的命运</p>
+<p>童年诅咒如今不再迂阔空虚</p>
+<p>何时才能实现那寄予的愿望</p>
+<p>就在跨过尸体骸骨的前方</p>
+<p>红莲的箭矢疾风呼啸而去</p>
+<p>散落满天的羽翼</p>
+<p>心脏就算撕裂贲张</p>
+<p>Requiem也不需要高声歌唱</p>
+<p>太阳在灵魂消逝西沉之前都不会落下</p>
+<p>勇敢的向前进吧</p>
+<p>向着波涛的彼方</p>
+<p>(END)</p>
 ]]></content>
       <categories>
-        <category>夜谈</category>
+        <category>摸鱼</category>
       </categories>
       <tags>
-        <tag>夜谈</tag>
+        <tag>摸鱼</tag>
       </tags>
   </entry>
   <entry>
@@ -533,6 +572,115 @@
       </categories>
       <tags>
         <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>写在十八岁之际</title>
+    <url>/posts/22741/</url>
+    <content><![CDATA[<h2 id="写在十八岁之际"><a href="#写在十八岁之际" class="headerlink" title="写在十八岁之际:"></a>写在十八岁之际:</h2><p>从今天开始就要正式成为成年人了<del>QAQ(成年人不允许这种颜文字</del></p>
+<p>没想到写到第二句我就不知道说些什么了,我果然只适合写一些FD的言论.</p>
+<p>今年是个令我有很大成长的一年,也是我来到XDU的第二年,不得不说XDU至少在搞机这方</p>
+<p>面的氛围可以作为来这里的重要原因.也结识了几个很会搞机的学长(其实也有<del>学姐</del>,但</p>
+<p>她们code能力多少弱一些)</p>
+<p>想来来这里的第一年和今年心态有很大变化,不会因为我更<del>mature</del>了吧.也更加坚定</p>
+<p>了自己未来的目标,个人觉得还是对宇宙机与技术很感兴趣.但是因为这是一篇生日水文</p>
+<p>所以严肃一些的话题不予讨论.</p>
+<p>我果然不适合写这种一本正经的文章,进入带学撸码一年已经丧失了写作能力…</p>
+<p>那就放几个我的项目吧,希望未来能一直走下去.</p>
+<p><a href="https://github.com/baijianruoliorz/mengnanClass" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=mengnanClass"  alt="ReadMe Card"></a></p>
+<p><a href="https://github.com/baijianruoliorz/bluebell" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=bluebell"  alt="ReadMe Card"></a>    </p>
+<p><a href="https://github.com/baijianruoliorz/renting_springboot" target="_blank" rel="noopener"><img src="/" class="lazyload" data-src="https://github-readme-stats.vercel.app/api/pin/?username=baijianruoliorz&repo=renting_springboot"  alt="ReadMe Card"></a></p>
+<p>使命は、何としても完成するのか.</p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>重返高中祭</title>
+    <url>/posts/1388/</url>
+    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
+<p>update:好累,好撑,洗个澡先睡一觉…</p>
+]]></content>
+      <categories>
+        <category>摸鱼</category>
+      </categories>
+      <tags>
+        <tag>摸鱼</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>阿里云视频直播</title>
+    <url>/posts/17537/</url>
+    <content><![CDATA[<h3 id="阿里云视频直播"><a href="#阿里云视频直播" class="headerlink" title="阿里云视频直播"></a>阿里云视频直播</h3><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
+<h5 id="官网概念"><a href="#官网概念" class="headerlink" title="官网概念:"></a>官网概念:</h5><blockquote>
+<p>视频直播服务（ApsaraVideo Live）是基于领先的内容接入与分发网络和大规模分布式实时转码技术打造的音视频直播平台，提供便捷接入、高清流畅、低延迟、高并发的音视频直播服务。</p>
+</blockquote>
+<ol>
+<li>通过采集设备将直播流推送至阿里云直播中心，推送的视频流通过CDN边缘节点进行加速保证上行传输的稳定性。移动端的推流工具可以集成阿里云提供的直播推流SDK进行开发。</li>
+<li>视频流推送至阿里云直播中心后，可按需对视频流进行转码，录制，截图，安全审核等处理。</li>
+<li>处理好的视频流通过CDN内容分发网络下发至观众的设备中进行播放。移动端的播放设备可以集成阿里云提供的播放器SDK进行开发。</li>
+<li>直播视频除了可以进行转码截图等操作外，还可以进行直播转点播的操作，将录制下来的视频转至点播系统中再进行点播播放。</li>
+</ol>
+<h5 id="操作流程"><a href="#操作流程" class="headerlink" title="操作流程:"></a>操作流程:</h5><p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/e68588dc-75be-4f20-8d04-b06066dbbc30.png"  alt=""></p>
+<h2 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h2><ul>
+<li>如果您要进行国内的直播活动，需提供已备案的域名才可使用直播服务。</li>
+<li>如果您的域名还未备案，请先将域名<a href="https://beian.aliyun.com/?spm=5176.doc25418.416540.19.8SzHLY" target="_blank" rel="noopener">备案</a>。</li>
+</ul>
+<h2 id="操作步骤"><a href="#操作步骤" class="headerlink" title="操作步骤"></a>操作步骤</h2><ol>
+<li><p>登录<a href="https://live.console.aliyun.com/#/live/domains" target="_blank" rel="noopener">视频云直播控制台</a>。</p>
+</li>
+<li><p>单击<strong>域名管理&gt;添加域名</strong>。</p>
+</li>
+<li><p>配置<strong>播流域名</strong>，并单击<strong>提交</strong>。</p>
+</li>
+<li><p>单击<strong>返回域名列表</strong>。</p>
+</li>
+<li><p>单击<strong>添加域名</strong>。</p>
+</li>
+<li><p>配置<strong>推流域名</strong>，并单击<strong>提交</strong>。</p>
+<p><strong>推流域名</strong>添加成功。</p>
+</li>
+</ol>
+<h5 id="低延时直播"><a href="#低延时直播" class="headerlink" title="低延时直播"></a>低延时直播</h5><h2 id="产品背景"><a href="#产品背景" class="headerlink" title="产品背景"></a>产品背景</h2><ul>
+<li>“直播+”模式向各垂直领域加速延伸，常见的直播大部分采用RTMP、HLS、FLV协议，技术成熟、兼容性较好、支持大规模并发等优点，但端到端延时最低只能控制在3-6秒，降低了直播的互动体验，也阻碍了直播在一些场景的落地推广。</li>
+<li>低延时直播RTS（Real-time Streaming），是在阿里云视频直播（ApsaraVideo Live）的基础上，进行全链路延时监控、CDN传输协议改造成UDP等底层技术优化，通过集成直播播放端SDK的方式，支持<strong>千万级并发场景下的毫秒级延时直播</strong>能力，保障低延时、低卡顿、秒开流畅的极致直播观看体验。</li>
+</ul>
+<h2 id="产品架构"><a href="#产品架构" class="headerlink" title="产品架构"></a>产品架构</h2><ul>
+<li>只需要在现有的直播业务新增一个RTS播流域名即可实现多种协议拉流，标准直播拉流（RTMP/FLV/HLS）沿用原有格式，低延时直播拉流（UDP）使用新协议头artc。</li>
+<li>主播端推流不用改造，继续沿用RTMP方式推流。</li>
+</ul>
+<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/df69fef2-0ede-427a-b655-cfcbba102844.png"  alt=""></p>
+<h5 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现:"></a>代码实现:</h5><p><strong>首先里面用到了hutool工具包:baby_chick:<del>国产精品</del></strong></p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;cn.hutool&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;hutool-all&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.12&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>推拉流工具类:用来生成推流以及加密工作</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 阿里云直播工具类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AliyunLiveUtil</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger log = LoggerFactory.getLogger(AliyunLiveUtil<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 推拉流地址示例：</span></span><br><span class="line"><span class="comment">     * rtmp://www.ttest.ygdjonline.com/a/a?auth_key=1558065152-0-0-c3cb54d946c0590ca9aeee63573201ee</span></span><br><span class="line"><span class="comment">     * 播流地址</span></span><br><span class="line"><span class="comment">     * 原画</span></span><br><span class="line"><span class="comment">     * rtmp://www.btest.ygdjonline.com/a/a?auth_key=1558065152-0-0-fc711455c0815aeb581385f33451d5b4</span></span><br><span class="line"><span class="comment">     * http://www.btest.ygdjonline.com/a/a.flv?auth_key=1558065152-0-0-221abff1da1ee32151e365cf0dd42a53</span></span><br><span class="line"><span class="comment">     * http://www.btest.ygdjonline.com/a/a.m3u8?auth_key=1558065152-0-0-72124fcc3aee3404b0d65dcc114e207f</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据源id创建该id的推流url</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> sourceId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> aliyunLiveConfig</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">createPushUrl</span><span class="params">(Integer sourceId, LiveTypeEnum liveTypeEnum, AliyunLiveConfig aliyunLiveConfig)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 推流域名</span></span><br><span class="line">        String pushDomain = aliyunLiveConfig.getAliyunLivePushDomain();</span><br><span class="line">        <span class="comment">// 应用名称</span></span><br><span class="line">        String appName = aliyunLiveConfig.getAliyunLiveAppName();</span><br><span class="line">        <span class="comment">// 流名称</span></span><br><span class="line">        String streamName = StrUtil.format(aliyunLiveConfig.getAliyunLiveStreamName(), liveTypeEnum.getValue(), sourceId);</span><br><span class="line">        <span class="comment">// 推流签名key</span></span><br><span class="line">        String pushIdentKey = aliyunLiveConfig.getAliyunLivePushIdentKey();</span><br><span class="line">        <span class="comment">// 签名url有效时间</span></span><br><span class="line">        Integer identUrlValidTime = aliyunLiveConfig.getAliyunLiveIdentUrlValidTime();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算过期时间</span></span><br><span class="line">        String timestamp = String.valueOf((System.currentTimeMillis() / <span class="number">1000</span>) + identUrlValidTime);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合推流域名前缀</span></span><br><span class="line"><span class="comment">//      rtmp://&#123;pushDomain&#125;/&#123;appName&#125;/&#123;streamName&#125;</span></span><br><span class="line">        String rtmpUrl = StrUtil.format(<span class="string">"rtmp://&#123;&#125;/&#123;&#125;/&#123;&#125;"</span>, pushDomain, appName, streamName);</span><br><span class="line">        log.debug(<span class="string">"推流域名前缀，rtmpUrl="</span> + rtmpUrl);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合md5加密串</span></span><br><span class="line"><span class="comment">//      /&#123;appName&#125;/&#123;streamName&#125;-&#123;timestamp&#125;-0-0-&#123;pushIdentKey&#125;</span></span><br><span class="line">        String md5Url = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pushIdentKey);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// md5加密</span></span><br><span class="line">        String md5Str = DigestUtil.md5Hex(md5Url);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5Url="</span> + md5Url + <span class="string">"------md5加密结果，md5Str="</span> + md5Str);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合最终鉴权过的推流域名</span></span><br><span class="line"><span class="comment">//      &#123;rtmpUrl&#125;?auth_key=&#123;timestamp&#125;-0-0-&#123;md5Str&#125;</span></span><br><span class="line">        String finallyPushUrl = StrUtil.format(<span class="string">"&#123;&#125;?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, rtmpUrl, timestamp, md5Str);</span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的推流域名="</span> + finallyPushUrl);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> finallyPushUrl;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 创建拉流域名，key=rtmpUrl、flvUrl、m3u8Url，代表三种拉流类型域名</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> sourceId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> aliyunLiveConfig</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, String&gt; <span class="title">createPullUrl</span><span class="params">(Integer sourceId, LiveTypeEnum liveTypeEnum, AliyunLiveConfig aliyunLiveConfig)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 拉流域名</span></span><br><span class="line">        String pullDomain = aliyunLiveConfig.getAliyunLivePullDomain();</span><br><span class="line">        <span class="comment">// 应用名称</span></span><br><span class="line">        String appName = aliyunLiveConfig.getAliyunLiveAppName();</span><br><span class="line">        <span class="comment">// 流名称</span></span><br><span class="line">        String streamName = StrUtil.format(aliyunLiveConfig.getAliyunLiveStreamName(), liveTypeEnum.getValue(), sourceId);</span><br><span class="line">        <span class="comment">// 拉流签名key</span></span><br><span class="line">        String pullIdentKey = aliyunLiveConfig.getAliyunLivePullIdentKey();</span><br><span class="line">        <span class="comment">// 签名url有效时间</span></span><br><span class="line">        Integer identUrlValidTime = aliyunLiveConfig.getAliyunLiveIdentUrlValidTime();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算过期时间</span></span><br><span class="line">        String timestamp = String.valueOf((System.currentTimeMillis() / <span class="number">1000</span>) + identUrlValidTime);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合通用域名</span></span><br><span class="line"><span class="comment">//      &#123;pullDomain&#125;/&#123;appName&#125;/&#123;streamName&#125;</span></span><br><span class="line">        String pullUrl = StrUtil.format(<span class="string">"&#123;&#125;/&#123;&#125;/&#123;&#125;"</span>, pullDomain, appName, streamName);</span><br><span class="line">        log.debug(<span class="string">"组合通用域名，pullUrl="</span> + pullUrl);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合md5加密串</span></span><br><span class="line"><span class="comment">//      /&#123;appName&#125;/&#123;streamName&#125;-&#123;timestamp&#125;-0-0-&#123;pullIdentKey&#125;</span></span><br><span class="line">        String md5Url = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pullIdentKey);</span><br><span class="line">        String md5FlvUrl = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;.flv-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pullIdentKey);</span><br><span class="line">        String md5M3u8Url = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;.m3u8-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pullIdentKey);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// md5加密</span></span><br><span class="line">        String md5Str = DigestUtil.md5Hex(md5Url);</span><br><span class="line">        String md5FlvStr = DigestUtil.md5Hex(md5FlvUrl);</span><br><span class="line">        String md5M3u8Str = DigestUtil.md5Hex(md5M3u8Url);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5Url    ="</span> + md5Url + <span class="string">"       ------     md5加密结果，md5Str="</span> + md5Str);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5FlvUrl ="</span> + md5FlvUrl + <span class="string">"    ------    md5加密结果，md5FlvStr="</span> + md5FlvStr);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5M3u8Url="</span> + md5M3u8Url + <span class="string">"   ------    md5加密结果，md5M3u8Str="</span> + md5M3u8Str);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合三种拉流域名前缀</span></span><br><span class="line"><span class="comment">//        rtmp://&#123;pullUrl&#125;?auth_key=&#123;timestamp&#125;-0-0-&#123;md5Str&#125;</span></span><br><span class="line">        String rtmpUrl = StrUtil.format(<span class="string">"rtmp://&#123;&#125;?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, pullUrl, timestamp, md5Str);</span><br><span class="line"><span class="comment">//        http://&#123;pullUrl&#125;.flv?auth_key=&#123;timestamp&#125;-0-0-&#123;md5FlvStr&#125;</span></span><br><span class="line">        String flvUrl = StrUtil.format(<span class="string">"http://&#123;&#125;.flv?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, pullUrl, timestamp, md5FlvStr);</span><br><span class="line"><span class="comment">//        http://&#123;pullUrl&#125;.m3u8?auth_key=&#123;timestamp&#125;-0-0-&#123;md5M3u8Str&#125;</span></span><br><span class="line">        String m3u8Url = StrUtil.format(<span class="string">"http://&#123;&#125;.m3u8?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, pullUrl, timestamp, md5M3u8Str);</span><br><span class="line"></span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的拉流rtmp域名="</span> + rtmpUrl);</span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的拉流flv域名 ="</span> + flvUrl);</span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的拉流m3u8域名="</span> + m3u8Url);</span><br><span class="line"></span><br><span class="line">        HashMap&lt;String, String&gt; urlMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        urlMap.put(<span class="string">"rtmpUrl"</span>, rtmpUrl);</span><br><span class="line">        urlMap.put(<span class="string">"flvUrl"</span>, flvUrl);</span><br><span class="line">        urlMap.put(<span class="string">"m3u8Url"</span>, m3u8Url);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> urlMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>阿里云直播配置参数类:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 阿里云直播配置参数</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AliyunLiveConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 推流域名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.push.domain&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePushDomain;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拉流域名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.pull.domain&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePullDomain;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 直播测试appName</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.appName&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLiveAppName;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 直播测试streamName&#123;直播类型&#125;_&#123;类型id&#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.streamName&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLiveStreamName;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 推流鉴权url key</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.push.ident.key&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePushIdentKey;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拉流鉴权url key</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.pull.ident.key&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePullIdentKey;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 鉴权url的有效时间（秒），默认30分钟，1800秒 key</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.ident.url.validTime&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> Integer aliyunLiveIdentUrlValidTime;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>直播类型的枚举类:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 直播类型</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@ApiModel</span>(description = <span class="string">"直播类型"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> LiveTypeEnum &#123;</span><br><span class="line"></span><br><span class="line">    course(<span class="string">"course"</span>, <span class="string">"课程"</span>);</span><br><span class="line"></span><br><span class="line">    LiveTypeEnum(String value, String text) &#123;</span><br><span class="line">        <span class="keyword">this</span>.value = value;</span><br><span class="line">        <span class="keyword">this</span>.text = text;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String value;</span><br><span class="line">    <span class="keyword">private</span> String text;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getText</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> text;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setText</span><span class="params">(String text)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.text = text;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setValue</span><span class="params">(String value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.value = value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据value获取text</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> value</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getTextByValue</span><span class="params">(String value)</span> </span>&#123;</span><br><span class="line">        LiveTypeEnum[] dictTypeEnums = LiveTypeEnum.values();</span><br><span class="line">        <span class="keyword">for</span> (LiveTypeEnum dictTypeEnum : dictTypeEnums) &#123;</span><br><span class="line">            <span class="keyword">if</span> (dictTypeEnum.getValue().equals(value)) &#123;</span><br><span class="line">                <span class="keyword">return</span> dictTypeEnum.getText();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">""</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>application.properties配置:</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#阿里云直播配置 begin</span><br><span class="line">#推流域名</span><br><span class="line">aliyun.live.push.domain&#x3D;www.xxx.xxx.com</span><br><span class="line">#推流鉴权url key</span><br><span class="line">aliyun.live.push.ident.key&#x3D;xxx</span><br><span class="line">#拉流域名</span><br><span class="line">aliyun.live.pull.domain&#x3D;www.xxx.xxx.com</span><br><span class="line">#拉流鉴权url key</span><br><span class="line">aliyun.live.pull.ident.key&#x3D;xxx</span><br><span class="line">#直播测试appName</span><br><span class="line">aliyun.live.appName&#x3D;ttest</span><br><span class="line">#直播测试streamName&#123;直播类型&#125;&#123;类型id&#125;</span><br><span class="line">aliyun.live.streamName&#x3D;&#123;&#125;&#123;&#125;</span><br><span class="line">#鉴权url的有效时间（秒），默认30分钟，1800秒</span><br><span class="line">aliyun.live.ident.url.validTime&#x3D;1800</span><br><span class="line">#阿里云直播配置 end</span><br></pre></td></tr></table></figure>
+
+<p><strong>AliyunLiveController  api:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/aliyunLive"</span>)</span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AliyunLiveController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> AliyunLiveConfig aliyunLiveConfig;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"addLive"</span>)</span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">addLive</span><span class="params">(Integer courseId)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 注意，推流要在播流域名里面生成</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line"></span><br><span class="line">        System.out.println(aliyunLiveConfig.toString());</span><br><span class="line"></span><br><span class="line">        String pushUrl = AliyunLiveUtil.createPushUrl(courseId, LiveTypeEnum.course, aliyunLiveConfig);</span><br><span class="line">        log.debug(<span class="string">"推流域名="</span> + pushUrl);</span><br><span class="line"></span><br><span class="line">        Map&lt;String, String&gt; pullUrl = AliyunLiveUtil.createPullUrl(courseId, LiveTypeEnum.course, aliyunLiveConfig);</span><br><span class="line">        log.debug(<span class="string">"拉流域名="</span> + pullUrl.toString());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"hello login"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String s = UUID.randomUUID().toString().replaceAll(<span class="string">"-"</span>, <span class="string">""</span>);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="END"><a href="#END" class="headerlink" title="END:"></a>END:</h5><p>访问上面的API控制台就会返回推流与拉流的地址,正式上线的时候,可以返回一个封装的类,里面包含推拉流地址.让主播得知推流地址进行直播,用户拉流地址观看即可.如果是使用的阿里云的服务，后端只需要生成推拉流地址就好了，把地址生成好给移动端，其他都是移动端的工作了</p>
+<p>@copyright ————baijianruoliorz@Github——————————–</p>
+]]></content>
+      <categories>
+        <category>alibaba</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>中间件</tag>
       </tags>
   </entry>
   <entry>
@@ -651,154 +799,6 @@
       <tags>
         <tag>blog</tag>
         <tag>操作系统</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>重返高中祭</title>
-    <url>/posts/1388/</url>
-    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
-<p>update:好累,好撑,洗个澡先睡一觉…</p>
-]]></content>
-      <categories>
-        <category>摸鱼</category>
-      </categories>
-      <tags>
-        <tag>摸鱼</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>憧憬と尸の道</title>
-    <url>/posts/13965/</url>
-    <content><![CDATA[<p><img src="/" class="lazyload" data-src="https://edu-1014.oss-cn-beijing.aliyuncs.com/TIM%E5%9B%BE%E7%89%8720200704150735.jpg"  alt="image"></p>
-<p>人类的记忆那一天已苏醒</p>
-<p>夜幕中摇晃的身影虚幻的步伐</p>
-<p>忐忑不安踏着声响</p>
-<p>无法掌握他梦中想看见的未来</p>
-<p>却在薄冰上绽放</p>
-<p>每当太阳西沉黑暗夜幕已降下</p>
-<p>那冰冷的手总会轻轻划过我们的脸庞</p>
-<p>温热的血与铁交杂背向黄昏伫立的身躯</p>
-<p>追寻着希望下的光晕</p>
-<p>哪怕这生命，正迈向炼狱，笔直前行通过碎石和血腥</p>
-<p>梦境的全貌已经触手就可及</p>
-<p>你愿意牺牲多少来一窥秘密</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>就用尸体骸骨铺路向前进</p>
-<p>那高墙对面存在着怎样的命运</p>
-<p>此刻唤起回忆中的童年憧憬</p>
-<p>真相就在眼前那咫尺的距离</p>
-<p>只要跨过尸体骸骨向前进沙盒的轮回重复的上演</p>
-<p>哭泣哀悼愤怒怨恨的伤悲</p>
-<p>反复地写入它记忆的终点</p>
-<p>自由是否可有也可无</p>
-<p>Ah-未来本应该有无限的道路</p>
-<p>宿命却催促踏上征途</p>
-<p>他们命运有如罗盘指向同个地方</p>
-<p>那究竟是谁的悲愿又是谁的梦想</p>
-<p>怨恨交织愤怒呐喊撕裂着心脏</p>
-<p>炽热红莲的箭矢彼此相向憧憬自由羽翼的勇敢战士啊</p>
-<p>展开翅膀向着天际直冲而上</p>
-<p>恶魔在你耳边他奸诈地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>在天空那段存在着怎样的命运</p>
-<p>像是灯火般童年被囚禁的心</p>
-<p>如今火焰燃烧着真相与过往</p>
-<p>照亮那片尸体骸骨的前方</p>
-<p>“从天上向下俯瞰的话，<br>   到底会看见什么样的景象<br>   好想去看看未知的地方，<br>   到处漫步游荡</p>
-<p>   从小时候就梦想着远方，<br>   辽阔的宽广的大地尽头啊<br>   孩子怀抱着荒谬的幻想，<br>   总有一天会实现的吧</p>
-<p>   不停的向往那自由的代价<br>   就是躺卧在冰冷的泥土上<br>   为了正义化身成野兽，张牙舞爪撕咬着对方<br>   不管牢笼之中或是之外<br>   莫非都是残酷地狱景象”随着背负的罪孽越来越沉重</p>
-<p>每个步伐就承载了更多的梦</p>
-<p>恶魔在你耳边他轻声地歌唱</p>
-<p>踏着尸体骸骨道路前进吧</p>
-<p>那黑暗之后存在着怎样的命运</p>
-<p>童年诅咒如今不再迂阔空虚</p>
-<p>何时才能实现那寄予的愿望</p>
-<p>就在跨过尸体骸骨的前方</p>
-<p>红莲的箭矢疾风呼啸而去</p>
-<p>散落满天的羽翼</p>
-<p>心脏就算撕裂贲张</p>
-<p>Requiem也不需要高声歌唱</p>
-<p>太阳在灵魂消逝西沉之前都不会落下</p>
-<p>勇敢的向前进吧</p>
-<p>向着波涛的彼方</p>
-<p>(END)</p>
-]]></content>
-      <categories>
-        <category>摸鱼</category>
-      </categories>
-      <tags>
-        <tag>摸鱼</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>阿里云视频直播</title>
-    <url>/posts/17537/</url>
-    <content><![CDATA[<h3 id="阿里云视频直播"><a href="#阿里云视频直播" class="headerlink" title="阿里云视频直播"></a>阿里云视频直播</h3><p><img src="/" class="lazyload" data-src="https://ipcounter.ihcr.top/?mode=2&amp;mail=xryang_1@stu.xidian.edu.cn&amp;&amp;qq=1099462011&amp;lg=liqiqi_tql&amp;gh=baijianruoliorz&amp;pic=Chtholly"  alt=""></p>
-<h5 id="官网概念"><a href="#官网概念" class="headerlink" title="官网概念:"></a>官网概念:</h5><blockquote>
-<p>视频直播服务（ApsaraVideo Live）是基于领先的内容接入与分发网络和大规模分布式实时转码技术打造的音视频直播平台，提供便捷接入、高清流畅、低延迟、高并发的音视频直播服务。</p>
-</blockquote>
-<ol>
-<li>通过采集设备将直播流推送至阿里云直播中心，推送的视频流通过CDN边缘节点进行加速保证上行传输的稳定性。移动端的推流工具可以集成阿里云提供的直播推流SDK进行开发。</li>
-<li>视频流推送至阿里云直播中心后，可按需对视频流进行转码，录制，截图，安全审核等处理。</li>
-<li>处理好的视频流通过CDN内容分发网络下发至观众的设备中进行播放。移动端的播放设备可以集成阿里云提供的播放器SDK进行开发。</li>
-<li>直播视频除了可以进行转码截图等操作外，还可以进行直播转点播的操作，将录制下来的视频转至点播系统中再进行点播播放。</li>
-</ol>
-<h5 id="操作流程"><a href="#操作流程" class="headerlink" title="操作流程:"></a>操作流程:</h5><p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/e68588dc-75be-4f20-8d04-b06066dbbc30.png"  alt=""></p>
-<h2 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h2><ul>
-<li>如果您要进行国内的直播活动，需提供已备案的域名才可使用直播服务。</li>
-<li>如果您的域名还未备案，请先将域名<a href="https://beian.aliyun.com/?spm=5176.doc25418.416540.19.8SzHLY" target="_blank" rel="noopener">备案</a>。</li>
-</ul>
-<h2 id="操作步骤"><a href="#操作步骤" class="headerlink" title="操作步骤"></a>操作步骤</h2><ol>
-<li><p>登录<a href="https://live.console.aliyun.com/#/live/domains" target="_blank" rel="noopener">视频云直播控制台</a>。</p>
-</li>
-<li><p>单击<strong>域名管理&gt;添加域名</strong>。</p>
-</li>
-<li><p>配置<strong>播流域名</strong>，并单击<strong>提交</strong>。</p>
-</li>
-<li><p>单击<strong>返回域名列表</strong>。</p>
-</li>
-<li><p>单击<strong>添加域名</strong>。</p>
-</li>
-<li><p>配置<strong>推流域名</strong>，并单击<strong>提交</strong>。</p>
-<p><strong>推流域名</strong>添加成功。</p>
-</li>
-</ol>
-<h5 id="低延时直播"><a href="#低延时直播" class="headerlink" title="低延时直播"></a>低延时直播</h5><h2 id="产品背景"><a href="#产品背景" class="headerlink" title="产品背景"></a>产品背景</h2><ul>
-<li>“直播+”模式向各垂直领域加速延伸，常见的直播大部分采用RTMP、HLS、FLV协议，技术成熟、兼容性较好、支持大规模并发等优点，但端到端延时最低只能控制在3-6秒，降低了直播的互动体验，也阻碍了直播在一些场景的落地推广。</li>
-<li>低延时直播RTS（Real-time Streaming），是在阿里云视频直播（ApsaraVideo Live）的基础上，进行全链路延时监控、CDN传输协议改造成UDP等底层技术优化，通过集成直播播放端SDK的方式，支持<strong>千万级并发场景下的毫秒级延时直播</strong>能力，保障低延时、低卡顿、秒开流畅的极致直播观看体验。</li>
-</ul>
-<h2 id="产品架构"><a href="#产品架构" class="headerlink" title="产品架构"></a>产品架构</h2><ul>
-<li>只需要在现有的直播业务新增一个RTS播流域名即可实现多种协议拉流，标准直播拉流（RTMP/FLV/HLS）沿用原有格式，低延时直播拉流（UDP）使用新协议头artc。</li>
-<li>主播端推流不用改造，继续沿用RTMP方式推流。</li>
-</ul>
-<p><img src="/" class="lazyload" data-src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/df69fef2-0ede-427a-b655-cfcbba102844.png"  alt=""></p>
-<h5 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现:"></a>代码实现:</h5><p><strong>首先里面用到了hutool工具包:baby_chick:<del>国产精品</del></strong></p>
-<figure class="highlight"><table><tr><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;cn.hutool&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;hutool-all&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0.12&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
-
-<p><strong>推拉流工具类:用来生成推流以及加密工作</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 阿里云直播工具类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AliyunLiveUtil</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger log = LoggerFactory.getLogger(AliyunLiveUtil<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 推拉流地址示例：</span></span><br><span class="line"><span class="comment">     * rtmp://www.ttest.ygdjonline.com/a/a?auth_key=1558065152-0-0-c3cb54d946c0590ca9aeee63573201ee</span></span><br><span class="line"><span class="comment">     * 播流地址</span></span><br><span class="line"><span class="comment">     * 原画</span></span><br><span class="line"><span class="comment">     * rtmp://www.btest.ygdjonline.com/a/a?auth_key=1558065152-0-0-fc711455c0815aeb581385f33451d5b4</span></span><br><span class="line"><span class="comment">     * http://www.btest.ygdjonline.com/a/a.flv?auth_key=1558065152-0-0-221abff1da1ee32151e365cf0dd42a53</span></span><br><span class="line"><span class="comment">     * http://www.btest.ygdjonline.com/a/a.m3u8?auth_key=1558065152-0-0-72124fcc3aee3404b0d65dcc114e207f</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据源id创建该id的推流url</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> sourceId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> aliyunLiveConfig</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">createPushUrl</span><span class="params">(Integer sourceId, LiveTypeEnum liveTypeEnum, AliyunLiveConfig aliyunLiveConfig)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 推流域名</span></span><br><span class="line">        String pushDomain = aliyunLiveConfig.getAliyunLivePushDomain();</span><br><span class="line">        <span class="comment">// 应用名称</span></span><br><span class="line">        String appName = aliyunLiveConfig.getAliyunLiveAppName();</span><br><span class="line">        <span class="comment">// 流名称</span></span><br><span class="line">        String streamName = StrUtil.format(aliyunLiveConfig.getAliyunLiveStreamName(), liveTypeEnum.getValue(), sourceId);</span><br><span class="line">        <span class="comment">// 推流签名key</span></span><br><span class="line">        String pushIdentKey = aliyunLiveConfig.getAliyunLivePushIdentKey();</span><br><span class="line">        <span class="comment">// 签名url有效时间</span></span><br><span class="line">        Integer identUrlValidTime = aliyunLiveConfig.getAliyunLiveIdentUrlValidTime();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算过期时间</span></span><br><span class="line">        String timestamp = String.valueOf((System.currentTimeMillis() / <span class="number">1000</span>) + identUrlValidTime);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合推流域名前缀</span></span><br><span class="line"><span class="comment">//      rtmp://&#123;pushDomain&#125;/&#123;appName&#125;/&#123;streamName&#125;</span></span><br><span class="line">        String rtmpUrl = StrUtil.format(<span class="string">"rtmp://&#123;&#125;/&#123;&#125;/&#123;&#125;"</span>, pushDomain, appName, streamName);</span><br><span class="line">        log.debug(<span class="string">"推流域名前缀，rtmpUrl="</span> + rtmpUrl);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合md5加密串</span></span><br><span class="line"><span class="comment">//      /&#123;appName&#125;/&#123;streamName&#125;-&#123;timestamp&#125;-0-0-&#123;pushIdentKey&#125;</span></span><br><span class="line">        String md5Url = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pushIdentKey);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// md5加密</span></span><br><span class="line">        String md5Str = DigestUtil.md5Hex(md5Url);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5Url="</span> + md5Url + <span class="string">"------md5加密结果，md5Str="</span> + md5Str);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合最终鉴权过的推流域名</span></span><br><span class="line"><span class="comment">//      &#123;rtmpUrl&#125;?auth_key=&#123;timestamp&#125;-0-0-&#123;md5Str&#125;</span></span><br><span class="line">        String finallyPushUrl = StrUtil.format(<span class="string">"&#123;&#125;?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, rtmpUrl, timestamp, md5Str);</span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的推流域名="</span> + finallyPushUrl);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> finallyPushUrl;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 创建拉流域名，key=rtmpUrl、flvUrl、m3u8Url，代表三种拉流类型域名</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> sourceId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> aliyunLiveConfig</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, String&gt; <span class="title">createPullUrl</span><span class="params">(Integer sourceId, LiveTypeEnum liveTypeEnum, AliyunLiveConfig aliyunLiveConfig)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 拉流域名</span></span><br><span class="line">        String pullDomain = aliyunLiveConfig.getAliyunLivePullDomain();</span><br><span class="line">        <span class="comment">// 应用名称</span></span><br><span class="line">        String appName = aliyunLiveConfig.getAliyunLiveAppName();</span><br><span class="line">        <span class="comment">// 流名称</span></span><br><span class="line">        String streamName = StrUtil.format(aliyunLiveConfig.getAliyunLiveStreamName(), liveTypeEnum.getValue(), sourceId);</span><br><span class="line">        <span class="comment">// 拉流签名key</span></span><br><span class="line">        String pullIdentKey = aliyunLiveConfig.getAliyunLivePullIdentKey();</span><br><span class="line">        <span class="comment">// 签名url有效时间</span></span><br><span class="line">        Integer identUrlValidTime = aliyunLiveConfig.getAliyunLiveIdentUrlValidTime();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算过期时间</span></span><br><span class="line">        String timestamp = String.valueOf((System.currentTimeMillis() / <span class="number">1000</span>) + identUrlValidTime);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合通用域名</span></span><br><span class="line"><span class="comment">//      &#123;pullDomain&#125;/&#123;appName&#125;/&#123;streamName&#125;</span></span><br><span class="line">        String pullUrl = StrUtil.format(<span class="string">"&#123;&#125;/&#123;&#125;/&#123;&#125;"</span>, pullDomain, appName, streamName);</span><br><span class="line">        log.debug(<span class="string">"组合通用域名，pullUrl="</span> + pullUrl);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合md5加密串</span></span><br><span class="line"><span class="comment">//      /&#123;appName&#125;/&#123;streamName&#125;-&#123;timestamp&#125;-0-0-&#123;pullIdentKey&#125;</span></span><br><span class="line">        String md5Url = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pullIdentKey);</span><br><span class="line">        String md5FlvUrl = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;.flv-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pullIdentKey);</span><br><span class="line">        String md5M3u8Url = StrUtil.format(<span class="string">"/&#123;&#125;/&#123;&#125;.m3u8-&#123;&#125;-0-0-&#123;&#125;"</span>, appName, streamName, timestamp, pullIdentKey);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// md5加密</span></span><br><span class="line">        String md5Str = DigestUtil.md5Hex(md5Url);</span><br><span class="line">        String md5FlvStr = DigestUtil.md5Hex(md5FlvUrl);</span><br><span class="line">        String md5M3u8Str = DigestUtil.md5Hex(md5M3u8Url);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5Url    ="</span> + md5Url + <span class="string">"       ------     md5加密结果，md5Str="</span> + md5Str);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5FlvUrl ="</span> + md5FlvUrl + <span class="string">"    ------    md5加密结果，md5FlvStr="</span> + md5FlvStr);</span><br><span class="line">        log.debug(<span class="string">"md5加密串，md5M3u8Url="</span> + md5M3u8Url + <span class="string">"   ------    md5加密结果，md5M3u8Str="</span> + md5M3u8Str);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 组合三种拉流域名前缀</span></span><br><span class="line"><span class="comment">//        rtmp://&#123;pullUrl&#125;?auth_key=&#123;timestamp&#125;-0-0-&#123;md5Str&#125;</span></span><br><span class="line">        String rtmpUrl = StrUtil.format(<span class="string">"rtmp://&#123;&#125;?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, pullUrl, timestamp, md5Str);</span><br><span class="line"><span class="comment">//        http://&#123;pullUrl&#125;.flv?auth_key=&#123;timestamp&#125;-0-0-&#123;md5FlvStr&#125;</span></span><br><span class="line">        String flvUrl = StrUtil.format(<span class="string">"http://&#123;&#125;.flv?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, pullUrl, timestamp, md5FlvStr);</span><br><span class="line"><span class="comment">//        http://&#123;pullUrl&#125;.m3u8?auth_key=&#123;timestamp&#125;-0-0-&#123;md5M3u8Str&#125;</span></span><br><span class="line">        String m3u8Url = StrUtil.format(<span class="string">"http://&#123;&#125;.m3u8?auth_key=&#123;&#125;-0-0-&#123;&#125;"</span>, pullUrl, timestamp, md5M3u8Str);</span><br><span class="line"></span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的拉流rtmp域名="</span> + rtmpUrl);</span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的拉流flv域名 ="</span> + flvUrl);</span><br><span class="line">        log.debug(<span class="string">"最终鉴权过的拉流m3u8域名="</span> + m3u8Url);</span><br><span class="line"></span><br><span class="line">        HashMap&lt;String, String&gt; urlMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        urlMap.put(<span class="string">"rtmpUrl"</span>, rtmpUrl);</span><br><span class="line">        urlMap.put(<span class="string">"flvUrl"</span>, flvUrl);</span><br><span class="line">        urlMap.put(<span class="string">"m3u8Url"</span>, m3u8Url);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> urlMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>阿里云直播配置参数类:</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 阿里云直播配置参数</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AliyunLiveConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 推流域名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.push.domain&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePushDomain;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拉流域名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.pull.domain&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePullDomain;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 直播测试appName</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.appName&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLiveAppName;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 直播测试streamName&#123;直播类型&#125;_&#123;类型id&#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.streamName&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLiveStreamName;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 推流鉴权url key</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.push.ident.key&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePushIdentKey;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拉流鉴权url key</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.pull.ident.key&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String aliyunLivePullIdentKey;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 鉴权url的有效时间（秒），默认30分钟，1800秒 key</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;aliyun.live.ident.url.validTime&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> Integer aliyunLiveIdentUrlValidTime;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>直播类型的枚举类:</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 直播类型</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@ApiModel</span>(description = <span class="string">"直播类型"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> LiveTypeEnum &#123;</span><br><span class="line"></span><br><span class="line">    course(<span class="string">"course"</span>, <span class="string">"课程"</span>);</span><br><span class="line"></span><br><span class="line">    LiveTypeEnum(String value, String text) &#123;</span><br><span class="line">        <span class="keyword">this</span>.value = value;</span><br><span class="line">        <span class="keyword">this</span>.text = text;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String value;</span><br><span class="line">    <span class="keyword">private</span> String text;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getText</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> text;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setText</span><span class="params">(String text)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.text = text;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setValue</span><span class="params">(String value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.value = value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据value获取text</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> value</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getTextByValue</span><span class="params">(String value)</span> </span>&#123;</span><br><span class="line">        LiveTypeEnum[] dictTypeEnums = LiveTypeEnum.values();</span><br><span class="line">        <span class="keyword">for</span> (LiveTypeEnum dictTypeEnum : dictTypeEnums) &#123;</span><br><span class="line">            <span class="keyword">if</span> (dictTypeEnum.getValue().equals(value)) &#123;</span><br><span class="line">                <span class="keyword">return</span> dictTypeEnum.getText();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">""</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>application.properties配置:</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#阿里云直播配置 begin</span><br><span class="line">#推流域名</span><br><span class="line">aliyun.live.push.domain&#x3D;www.xxx.xxx.com</span><br><span class="line">#推流鉴权url key</span><br><span class="line">aliyun.live.push.ident.key&#x3D;xxx</span><br><span class="line">#拉流域名</span><br><span class="line">aliyun.live.pull.domain&#x3D;www.xxx.xxx.com</span><br><span class="line">#拉流鉴权url key</span><br><span class="line">aliyun.live.pull.ident.key&#x3D;xxx</span><br><span class="line">#直播测试appName</span><br><span class="line">aliyun.live.appName&#x3D;ttest</span><br><span class="line">#直播测试streamName&#123;直播类型&#125;&#123;类型id&#125;</span><br><span class="line">aliyun.live.streamName&#x3D;&#123;&#125;&#123;&#125;</span><br><span class="line">#鉴权url的有效时间（秒），默认30分钟，1800秒</span><br><span class="line">aliyun.live.ident.url.validTime&#x3D;1800</span><br><span class="line">#阿里云直播配置 end</span><br></pre></td></tr></table></figure>
-
-<p><strong>AliyunLiveController  api:</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/aliyunLive"</span>)</span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AliyunLiveController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> AliyunLiveConfig aliyunLiveConfig;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"addLive"</span>)</span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">addLive</span><span class="params">(Integer courseId)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 注意，推流要在播流域名里面生成</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line"></span><br><span class="line">        System.out.println(aliyunLiveConfig.toString());</span><br><span class="line"></span><br><span class="line">        String pushUrl = AliyunLiveUtil.createPushUrl(courseId, LiveTypeEnum.course, aliyunLiveConfig);</span><br><span class="line">        log.debug(<span class="string">"推流域名="</span> + pushUrl);</span><br><span class="line"></span><br><span class="line">        Map&lt;String, String&gt; pullUrl = AliyunLiveUtil.createPullUrl(courseId, LiveTypeEnum.course, aliyunLiveConfig);</span><br><span class="line">        log.debug(<span class="string">"拉流域名="</span> + pullUrl.toString());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"hello login"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String s = UUID.randomUUID().toString().replaceAll(<span class="string">"-"</span>, <span class="string">""</span>);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h5 id="END"><a href="#END" class="headerlink" title="END:"></a>END:</h5><p>访问上面的API控制台就会返回推流与拉流的地址,正式上线的时候,可以返回一个封装的类,里面包含推拉流地址.让主播得知推流地址进行直播,用户拉流地址观看即可.如果是使用的阿里云的服务，后端只需要生成推拉流地址就好了，把地址生成好给移动端，其他都是移动端的工作了</p>
-<p>@copyright ————baijianruoliorz@Github——————————–</p>
-]]></content>
-      <categories>
-        <category>alibaba</category>
-      </categories>
-      <tags>
-        <tag>blog</tag>
-        <tag>中间件</tag>
       </tags>
   </entry>
   <entry>

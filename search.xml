@@ -1,114 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Grpc系列学习(二)</title>
-    <url>/posts/8534/</url>
-    <content><![CDATA[<p>Grpc系列学习(二)</p>
-<p><strong>一切都是RPC</strong></p>
-<p>写在前面:因为1024CSDN写博客会有徽章,本人多少带点收集控,故正好整理出第二篇关于Grpc的学习文章.</p>
-<p>这次照例宣传一下我的个人博客:</p>
-<h3 id="demo"><a href="#demo" class="headerlink" title="demo:"></a>demo:</h3><h1 id="制作证书"><a href="#制作证书" class="headerlink" title="制作证书"></a><strong>制作证书</strong></h1><p>在服务端支持<code>Rpc</code>和<code>Restful Api</code>，需要用到<code>TLS</code>，因此我们要先制作证书</p>
-<p>进入<code>certs</code>目录，生成<code>TLS</code>所需的公钥密钥文件</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line"></span><br><span class="line">openssl ecparam -genkey -name secp384r1 -out server.key</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>openssl genrsa</code>：生成<code>RSA</code>私钥，命令的最后一个参数，将指定生成密钥的位数，如果没有指定，默认512</li>
-<li><code>openssl ecparam</code>：生成<code>ECC</code>私钥，命令为椭圆曲线密钥参数生成及操作，本文中<code>ECC</code>曲线选择的是<code>secp384r1</code></li>
-</ul>
-<h4 id="自签名公钥"><a href="#自签名公钥" class="headerlink" title="自签名公钥"></a>自签名公钥</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650</span><br></pre></td></tr></table></figure>
-
-<p><code>openssl req</code>：生成自签名证书，<code>-new</code>指生成证书请求、<code>-sha256</code>指使用<code>sha256</code>加密、<code>-key</code>指定私钥文件、<code>-x509</code>指输出证书、<code>-days 3650</code>为有效期，此后则输入证书拥有者信息</p>
-<h4 id="填写信息"><a href="#填写信息" class="headerlink" title="填写信息"></a>填写信息</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Country Name (2 letter code) [XX]:</span><br><span class="line">State or Province Name (full name) []:</span><br><span class="line">Locality Name (eg, city) [Default City]:</span><br><span class="line">Organization Name (eg, company) [Default Company Ltd]:</span><br><span class="line">Organizational Unit Name (eg, section) []:</span><br><span class="line">Common Name (eg, your name or your server&#39;s hostname) []:grpc server name</span><br><span class="line">Email Address []:</span><br></pre></td></tr></table></figure>
-
-<h3 id="Proto"><a href="#Proto" class="headerlink" title="Proto"></a>Proto</h3><h4 id="编写"><a href="#编写" class="headerlink" title="编写"></a>编写</h4><p>1.google.api</p>
-<p>我们看到<code>proto</code>目录中有<code>google/api</code>目录，它用到了<code>google</code>官方提供的两个<code>api</code>描述文件，主要是针对<code>grpc-gateway</code>的<code>http</code>转换提供支持，定义了<code>Protocol Buffer</code>所扩展的<code>HTTP Option</code></p>
-<p><code>annotations.proto</code>文件：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright (c) 2015, Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line">​</span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line">​</span><br><span class="line">package google.api;</span><br><span class="line">​</span><br><span class="line">import &quot;google&#x2F;api&#x2F;http.proto&quot;;</span><br><span class="line">import &quot;google&#x2F;protobuf&#x2F;descriptor.proto&quot;;</span><br><span class="line">​</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;AnnotationsProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line">​</span><br><span class="line">extend google.protobuf.MethodOptions &#123;</span><br><span class="line">  &#x2F;&#x2F; See &#96;HttpRule&#96;.</span><br><span class="line">  HttpRule http &#x3D; 72295728;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>http.proto</code>文件：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright 2016 Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line"></span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package google.api;</span><br><span class="line"></span><br><span class="line">option cc_enable_arenas &#x3D; true;</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;HttpProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Defines the HTTP configuration for a service. It contains a list of</span><br><span class="line">&#x2F;&#x2F; [HttpRule][google.api.HttpRule], each specifying the mapping of an RPC method</span><br><span class="line">&#x2F;&#x2F; to one or more HTTP REST API methods.</span><br><span class="line">message Http &#123;</span><br><span class="line">  &#x2F;&#x2F; A list of HTTP rules for configuring the HTTP REST API methods.</span><br><span class="line">  repeated HttpRule rules &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Use CustomHttpPattern to specify any HTTP method that is not included in the</span><br><span class="line">&#x2F;&#x2F; &#96;pattern&#96; field, such as HEAD, or &quot;*&quot; to leave the HTTP method unspecified for</span><br><span class="line">&#x2F;&#x2F; a given URL path rule. The wild-card rule is useful for services that provide</span><br><span class="line">&#x2F;&#x2F; content to Web (HTML) clients.</span><br><span class="line">message HttpRule &#123;</span><br><span class="line">  &#x2F;&#x2F; Selects methods to which this rule applies.</span><br><span class="line">  &#x2F;&#x2F;</span><br><span class="line">  &#x2F;&#x2F; Refer to [selector][google.api.DocumentationRule.selector] for syntax details.</span><br><span class="line">  string selector &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Determines the URL pattern is matched by this rules. This pattern can be</span><br><span class="line">  &#x2F;&#x2F; used with any of the &#123;get|put|post|delete|patch&#125; methods. A custom method</span><br><span class="line">  &#x2F;&#x2F; can be defined using the &#39;custom&#39; field.</span><br><span class="line">  oneof pattern &#123;</span><br><span class="line">    &#x2F;&#x2F; Used for listing and getting information about resources.</span><br><span class="line">    string get &#x3D; 2;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string put &#x3D; 3;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for creating a resource.</span><br><span class="line">    string post &#x3D; 4;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for deleting a resource.</span><br><span class="line">    string delete &#x3D; 5;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string patch &#x3D; 6;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Custom pattern is used for defining custom verbs.</span><br><span class="line">    CustomHttpPattern custom &#x3D; 8;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The name of the request field whose value is mapped to the HTTP body, or</span><br><span class="line">  &#x2F;&#x2F; &#96;*&#96; for mapping all fields not captured by the path pattern to the HTTP</span><br><span class="line">  &#x2F;&#x2F; body. NOTE: the referred field must not be a repeated field.</span><br><span class="line">  string body &#x3D; 7;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Additional HTTP bindings for the selector. Nested bindings must</span><br><span class="line">  &#x2F;&#x2F; not contain an &#96;additional_bindings&#96; field themselves (that is,</span><br><span class="line">  &#x2F;&#x2F; the nesting may only be one level deep).</span><br><span class="line">  repeated HttpRule additional_bindings &#x3D; 11;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; A custom pattern is used for defining custom HTTP verb.</span><br><span class="line">message CustomHttpPattern &#123;</span><br><span class="line">  &#x2F;&#x2F; The name of this custom HTTP verb.</span><br><span class="line">  string kind &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The path matched by this custom verb.</span><br><span class="line">  string path &#x3D; 2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><code>hello.proto</code></li>
-</ol>
-<p>这一小节将编写<code>Demo</code>的<code>.proto</code>文件，我们在<code>proto</code>目录下新建<code>hello.proto</code>文件，写入文件内容：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package proto;</span><br><span class="line"></span><br><span class="line">import &quot;google&#x2F;api&#x2F;annotations.proto&quot;;</span><br><span class="line"></span><br><span class="line">service HelloWorld &#123;</span><br><span class="line">    rpc SayHelloWorld(HelloWorldRequest) returns (HelloWorldResponse) &#123;</span><br><span class="line">        option (google.api.http) &#x3D; &#123;</span><br><span class="line">            post: &quot;&#x2F;hello_world&quot;</span><br><span class="line">            body: &quot;*&quot;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldRequest &#123;</span><br><span class="line">    string referer &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldResponse &#123;</span><br><span class="line">    string message &#x3D; 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>在<code>hello.proto</code>文件中，引用了<code>google/api/annotations.proto</code>，达到支持<code>HTTP Option</code>的效果</p>
-<ul>
-<li>定义了一个<code>service</code>RPC服务<code>HelloWorld</code>，在其内部定义了一个<code>HTTP Option</code>的<code>POST</code>方法，<code>HTTP</code>响应路径为<code>/hello_world</code></li>
-<li>定义<code>message</code>类型<code>HelloWorldRequest</code>、<code>HelloWorldResponse</code>，用于响应请求和返回结果</li>
-</ul>
-<h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a><strong>编译</strong></h2><p>在编写完<code>.proto</code>文件后，我们需要对其进行编译，就能够在<code>server</code>中使用</p>
-<p>进入<code>proto</code>目录，执行以下命令</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 编译google.api</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;protobuf&#x2F;descriptor.proto&#x3D;github.com&#x2F;golang&#x2F;protobuf&#x2F;protoc-gen-go&#x2F;descriptor:. google&#x2F;api&#x2F;*.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.proto</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;api&#x2F;annotations.proto&#x3D;grpc-hello-world&#x2F;proto&#x2F;google&#x2F;api:. .&#x2F;hello.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.gw.proto</span><br><span class="line">protoc --grpc-gateway_out&#x3D;logtostderr&#x3D;true:. .&#x2F;hello.proto</span><br></pre></td></tr></table></figure>
-
-<p>执行完毕后将生成<code>hello.pb.go</code>和<code>hello.gw.pb.go</code>，分别针对<code>grpc</code>和<code>grpc-gateway</code>的功能支持</p>
-<h3 id="命令行模块-cmd"><a href="#命令行模块-cmd" class="headerlink" title="命令行模块 cmd"></a><strong>命令行模块</strong> <code>cmd</code></h3><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a><strong>介绍</strong></h2><p>这一小节我们编写命令行模块，为什么要独立出来呢，是为了将<code>cmd</code>和<code>server</code>两者解耦，避免混淆在一起。</p>
-<p>我们采用 <a href="https://github.com/spf13/cobra" target="_blank" rel="noopener">Cobra</a> 来完成这项功能，<code>Cobra</code>既是创建强大的现代CLI应用程序的库，也是生成应用程序和命令文件的程序。提供了以下功能：</p>
-<ul>
-<li>简易的子命令行模式</li>
-<li>完全兼容posix的命令行模式(包括短和长版本)</li>
-<li>嵌套的子命令</li>
-<li>全局、本地和级联<code>flags</code></li>
-<li>使用<code>Cobra</code>很容易的生成应用程序和命令，使用<code>cobra create appname</code>和<code>cobra add cmdname</code></li>
-<li>智能提示</li>
-<li>自动生成commands和flags的帮助信息</li>
-<li>自动生成详细的help信息<code>-h</code>，<code>--help</code>等等</li>
-<li>自动生成的bash自动完成功能</li>
-<li>为应用程序自动生成手册</li>
-<li>命令别名</li>
-<li>定义您自己的帮助、用法等的灵活性。</li>
-<li>可选与<a href="https://github.com/spf13/viper" target="_blank" rel="noopener">viper</a>紧密集成的apps</li>
-</ul>
-<p>—选自某百科</p>
-<h2 id="编写server"><a href="#编写server" class="headerlink" title="编写server"></a><strong>编写<code>server</code></strong></h2><p>在编写<code>cmd</code>时需要先用<code>server</code>进行测试关联，因此这一步我们先写<code>server.go</code>用于测试</p>
-<p>在<code>server</code>模块下 新建<code>server.go</code>文件，写入测试内容：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> server</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    ServerPort <span class="keyword">string</span></span><br><span class="line">    CertName <span class="keyword">string</span></span><br><span class="line">    CertPemPath <span class="keyword">string</span></span><br><span class="line">    CertKeyPath <span class="keyword">string</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Serve</span><span class="params">()</span> <span class="params">(err error)</span></span>&#123;</span><br><span class="line">    log.Println(ServerPort)</span><br><span class="line"></span><br><span class="line">    log.Println(CertName)</span><br><span class="line"></span><br><span class="line">    log.Println(CertPemPath)</span><br><span class="line"></span><br><span class="line">    log.Println(CertKeyPath)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="编写cmd"><a href="#编写cmd" class="headerlink" title="编写cmd"></a><strong>编写<code>cmd</code></strong></h2><p>在<code>cmd</code>模块下 新建<code>root.go</code>文件，写入内容：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"os"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> rootCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"grpc"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Execute</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> err := rootCmd.Execute(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(err)</span><br><span class="line">        os.Exit(<span class="number">-1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>emmm….这个官网的Hello World还是有点多的,今天就不写了~~</p>
-<p>新建<code>server.go</code>文件，写入内容：</p>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"grpc-hello-world/server"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> serverCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"server"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">    Run: <span class="function"><span class="keyword">func</span><span class="params">(cmd *cobra.Command, args []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                log.Println(<span class="string">"Recover error : %v"</span>, err)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;()</span><br><span class="line"></span><br><span class="line">        server.Serve()</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.ServerPort, <span class="string">"port"</span>, <span class="string">"p"</span>, <span class="string">"50052"</span>, <span class="string">"server port"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertPemPath, <span class="string">"cert-pem"</span>, <span class="string">""</span>, <span class="string">"./certs/server.pem"</span>, <span class="string">"cert pem path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertKeyPath, <span class="string">"cert-key"</span>, <span class="string">""</span>, <span class="string">"./certs/server.key"</span>, <span class="string">"cert key path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertName, <span class="string">"cert-name"</span>, <span class="string">""</span>, <span class="string">"grpc server name"</span>, <span class="string">"server's hostname"</span>)</span><br><span class="line">    rootCmd.AddCommand(serverCmd)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们在<code>grpc-hello-world/</code>目录下，新建文件<code>main.go</code>，写入内容：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;grpc-hello-world&#x2F;cmd&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    cmd.Execute()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="讲解"><a href="#讲解" class="headerlink" title="讲解"></a><strong>讲解</strong></h2><p>要使用<code>Cobra</code>，按照<code>Cobra</code>标准要创建<code>main.go</code>和一个<code>rootCmd</code>文件，另外我们有子命令<code>server</code></p>
-<p>1、<code>rootCmd</code>： <code>rootCmd</code>表示在没有任何子命令的情况下的基本命令</p>
-<p>2、<code>&amp;cobra.Command</code>：</p>
-<ul>
-<li><code>Use</code>：<code>Command</code>的用法，<code>Use</code>是一个行用法消息</li>
-<li><code>Short</code>：<code>Short</code>是<code>help</code>命令输出中显示的简短描述</li>
-<li><code>Run</code>：运行:典型的实际工作功能。大多数命令只会实现这一点；另外还有<code>PreRun</code>、<code>PreRunE</code>、<code>PostRun</code>、<code>PostRunE</code>等等不同时期的运行命令，但比较少用，具体使用时再查看亦可</li>
-</ul>
-<p>3、<code>rootCmd.AddCommand</code>：<code>AddCommand</code>向这父命令（<code>rootCmd</code>）添加一个或多个命令</p>
-<p>4、<code>serverCmd.Flags().StringVarP()</code>：</p>
-<p>一般来说，我们需要在<code>init()</code>函数中定义<code>flags</code>和处理配置，以<code>serverCmd.Flags().StringVarP(&amp;server.ServerPort, &quot;port&quot;, &quot;p&quot;, &quot;50052&quot;, &quot;server port&quot;)</code>为例，我们定义了一个<code>flag</code>，值存储在<code>&amp;server.ServerPort</code>中，长命令为<code>--port</code>，短命令为<code>-p</code>，，默认值为<code>50052</code>，命令的描述为<code>server port</code>。这一种调用方式成为<code>Local Flags</code></p>
-<p>我们延伸一下，如果觉得每一个子命令都要设一遍觉得很麻烦，我们可以采用<code>Persistent Flags</code>：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">rootCmd.PersistentFlags().BoolVarP(&amp;Verbose, &quot;verbose&quot;, &quot;v&quot;, false, &quot;verbose output&quot;)</span><br></pre></td></tr></table></figure>
-
-<p>作用：</p>
-<p><code>flag</code>是可以持久的，这意味着该<code>flag</code>将被分配给它所分配的命令以及该命令下的每个命令。对于全局标记，将标记作为根上的持久标志。</p>
-<p>另外还有<code>Local Flag on Parent Commands</code>、<code>Bind Flags with Config</code>、<code>Required flags</code>等等，使用到再 <a href="https://github.com/spf13/cobra#local-flag-on-parent-commands" target="_blank" rel="noopener">传送</a> 了解即可</p>
-<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a><strong>测试</strong></h2><p>回到<code>grpc-hello-world/</code>目录下执行<code>go run main.go server</code>，查看输出是否为（此时应为默认值）：</p>
-<p>咕咕</p>
-<p>@copyright ————baijianruoliorz@Github——————————–</p>
-]]></content>
-      <categories>
-        <category>分布式</category>
-      </categories>
-      <tags>
-        <tag>Grpc</tag>
-        <tag>blog</tag>
-        <tag>分布式</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Grpc系列学习(一)</title>
     <url>/posts/57842/</url>
     <content><![CDATA[<p>##Grpc系列学习(一)</p>
@@ -357,29 +249,155 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/posts/520520/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+    <title>为之后端冬令营</title>
+    <url>/posts/57842/</url>
+    <content><![CDATA[<p>为之2021冬令营–&gt;后端方向</p>
+<h2 id="应该是前言一样的存在"><a href="#应该是前言一样的存在" class="headerlink" title="应该是前言一样的存在"></a><strong>应该是前言一样的存在</strong></h2><p>前段时间浩天学长跟我说了手有没有兴趣做一做为之后端的冬令营,出于好奇以及<del>责任感</del>我答应了下来.正巧一是现在复习文化课没什么动力,二是自己的博客水文似乎很久没有去水一篇了,所以打算写个大致的规划.</p>
+<p>看了一手浩天学长的2020年冬季的冬令营文章.觉得珠玉在前的同时也深感压力.(<del>可能因为我很多不会吧</del>)</p>
+<p>那么2021为之冬令营的主要科普(也许这个词比较合适)是Java,Java作为目前后端主流的开发语言重要性不言而喻.所以我们选择Java也就选择了未来主流趋势.(当然2020年冬令营介绍的GO语言也是一门十分不错的语言.)</p>
+<p>Java我们学校也开设了相关的课程,但是仅仅教授了业界认为的Javase部分:即基本语法和方法等使用.从Javase到后端开发还是有一小段距离要走.</p>
+<p>我当初学习的时候是Javase-&gt;J2ee-&gt;SpringBoot-&gt;SpringCloud-&gt;整合一些中间件…这样走的,但其实J2ee这部分说起来用处不大.算是为大家避了个坑(面试的时候如果问到相关知识还是要<del>提前会</del>的)</p>
+<p>所以我觉得这次关于Java的冬令营我们应该可以把SpringBoot的一些开发知识梳理梳理,因为面向的主要对象是未来的wizzer所以就擅自认为你们暂时没有掌握相关知识好了盒盒盒.</p>
+<p>没想到写到这里我就不知道这篇文章再该扯点啥了,所以在某些网站搜集了一些资料,贴出来大家先浏览浏览.</p>
+<h2 id="JAVA的特点"><a href="#JAVA的特点" class="headerlink" title="JAVA的特点"></a>JAVA的特点</h2><p>- 简单性</p>
+<p>Java的设计目的是让专业程序员觉得既易学由好用。如果你已经学习过C++了的话，那学习Java将不费吹灰之力，Java对于C语言中出现的许多容易混淆概念的东西要么弃置不用，要么以一种更清楚、更易理解的方式出现。</p>
+<p>- 面向对象性</p>
+<p>尽管Java是在C++的基础上开发出来的，当Java并没被设计成兼容其他语言源代码的程序语言。Java语言可以更直接、更易用、更实际地接近对象。</p>
+<p>- 分布式</p>
+<p>Java是为Internet的分布式环境而设计的，因此它可以处理TCP/IP协议。</p>
+<p>- 安全</p>
+<p>Java在网络应用程序为用户的计算提供了一道防火墙（firewall），消除了用户的安全顾虑。Java实现这中保护功能的方法是通过将Java程序限制在Java运行环境中，不允许它访问计算机的其他部分。</p>
+<p>- 多线程</p>
+<p>Java设计的目的之一就是满足人们创建交互式网上程序的需要，为此，Java支持多线程编程，用Java编写的应用程序可以同时执行多个任务。Java运行时，系统在多线程同步方面具有成熟的解决方案，使得用户能够创建出运行平稳的交互式西系统。Java多线程机制非常好用，因此用户只需关注程序细节，而不用担心后台的多任务系统。</p>
+<p>- 动态</p>
+<p>Java程序带有多种运行的类型信息，用于在运行是校验和解决对象访问问题。</p>
+<p>- 解释型</p>
+<p>Java是一种解释型语言，通过把程序编为Java字节码这样一个中间过程，产生跨平台运行的程序，字节码可以在提供Java虚拟机（JVM）的任何一种系统中被解释执行。</p>
+<p>- 高性能</p>
+<p>Java可以在性能极低的CPU上顺利运行。Java字节码经过仔细设计，因而使用JIT编译技术能很容易地将字节码直接转换成高性能的本机代码，因而”高效且跨品台“对于Java来说不再是矛盾。</p>
+<p>- 健壮</p>
+<p>Java通过替用户管理内存分配和释放，可以从根本上消除传统编程环境下内存管理困难和乏味的任务。</p>
+<p>- 结构中立和可移植性</p>
+<p>Java设计者考虑的主要问题是程序代码的持久性和可移植性。程序员面临的一个主要问题是，不能保证今天编写的程序明天仍然能在同一台机器上顺利运行。操作系统升级、处理器升级以及核心系统资源的变化，都可能导致程序无法继续运行</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h2><p>总而言之,看了上面的Java的特点,我觉得我也有很多对Java还未了解的地方,希望在可以向大家传送一些知识的同时自己也能有所感悟,互相进步.</p>
+<p>贴一下我的GitHub以及个人博客的地址,欢迎交流学习.</p>
+<p><a href="https://github.com/baijianruoliorz" target="_blank" rel="noopener">https://github.com/baijianruoliorz</a></p>
+<p><a href="https://yangxiangrui.site/">https://yangxiangrui.site/</a></p>
 ]]></content>
       <categories>
-        <category>夜谈</category>
+        <category>为之</category>
       </categories>
       <tags>
         <tag>blog</tag>
-        <tag>总结</tag>
-        <tag>平淡の日常</tag>
+        <tag>冬令营</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Grpc系列学习(二)</title>
+    <url>/posts/8534/</url>
+    <content><![CDATA[<p>Grpc系列学习(二)</p>
+<p><strong>一切都是RPC</strong></p>
+<p>写在前面:因为1024CSDN写博客会有徽章,本人多少带点收集控,故正好整理出第二篇关于Grpc的学习文章.</p>
+<p>这次照例宣传一下我的个人博客:</p>
+<h3 id="demo"><a href="#demo" class="headerlink" title="demo:"></a>demo:</h3><h1 id="制作证书"><a href="#制作证书" class="headerlink" title="制作证书"></a><strong>制作证书</strong></h1><p>在服务端支持<code>Rpc</code>和<code>Restful Api</code>，需要用到<code>TLS</code>，因此我们要先制作证书</p>
+<p>进入<code>certs</code>目录，生成<code>TLS</code>所需的公钥密钥文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line"></span><br><span class="line">openssl ecparam -genkey -name secp384r1 -out server.key</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>openssl genrsa</code>：生成<code>RSA</code>私钥，命令的最后一个参数，将指定生成密钥的位数，如果没有指定，默认512</li>
+<li><code>openssl ecparam</code>：生成<code>ECC</code>私钥，命令为椭圆曲线密钥参数生成及操作，本文中<code>ECC</code>曲线选择的是<code>secp384r1</code></li>
+</ul>
+<h4 id="自签名公钥"><a href="#自签名公钥" class="headerlink" title="自签名公钥"></a>自签名公钥</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650</span><br></pre></td></tr></table></figure>
+
+<p><code>openssl req</code>：生成自签名证书，<code>-new</code>指生成证书请求、<code>-sha256</code>指使用<code>sha256</code>加密、<code>-key</code>指定私钥文件、<code>-x509</code>指输出证书、<code>-days 3650</code>为有效期，此后则输入证书拥有者信息</p>
+<h4 id="填写信息"><a href="#填写信息" class="headerlink" title="填写信息"></a>填写信息</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Country Name (2 letter code) [XX]:</span><br><span class="line">State or Province Name (full name) []:</span><br><span class="line">Locality Name (eg, city) [Default City]:</span><br><span class="line">Organization Name (eg, company) [Default Company Ltd]:</span><br><span class="line">Organizational Unit Name (eg, section) []:</span><br><span class="line">Common Name (eg, your name or your server&#39;s hostname) []:grpc server name</span><br><span class="line">Email Address []:</span><br></pre></td></tr></table></figure>
+
+<h3 id="Proto"><a href="#Proto" class="headerlink" title="Proto"></a>Proto</h3><h4 id="编写"><a href="#编写" class="headerlink" title="编写"></a>编写</h4><p>1.google.api</p>
+<p>我们看到<code>proto</code>目录中有<code>google/api</code>目录，它用到了<code>google</code>官方提供的两个<code>api</code>描述文件，主要是针对<code>grpc-gateway</code>的<code>http</code>转换提供支持，定义了<code>Protocol Buffer</code>所扩展的<code>HTTP Option</code></p>
+<p><code>annotations.proto</code>文件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright (c) 2015, Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line">​</span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line">​</span><br><span class="line">package google.api;</span><br><span class="line">​</span><br><span class="line">import &quot;google&#x2F;api&#x2F;http.proto&quot;;</span><br><span class="line">import &quot;google&#x2F;protobuf&#x2F;descriptor.proto&quot;;</span><br><span class="line">​</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;AnnotationsProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line">​</span><br><span class="line">extend google.protobuf.MethodOptions &#123;</span><br><span class="line">  &#x2F;&#x2F; See &#96;HttpRule&#96;.</span><br><span class="line">  HttpRule http &#x3D; 72295728;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>http.proto</code>文件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; Copyright 2016 Google Inc.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line">&#x2F;&#x2F; you may not use this file except in compliance with the License.</span><br><span class="line">&#x2F;&#x2F; You may obtain a copy of the License at</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F;     http:&#x2F;&#x2F;www.apache.org&#x2F;licenses&#x2F;LICENSE-2.0</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Unless required by applicable law or agreed to in writing, software</span><br><span class="line">&#x2F;&#x2F; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line">&#x2F;&#x2F; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line">&#x2F;&#x2F; See the License for the specific language governing permissions and</span><br><span class="line">&#x2F;&#x2F; limitations under the License.</span><br><span class="line"></span><br><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package google.api;</span><br><span class="line"></span><br><span class="line">option cc_enable_arenas &#x3D; true;</span><br><span class="line">option java_multiple_files &#x3D; true;</span><br><span class="line">option java_outer_classname &#x3D; &quot;HttpProto&quot;;</span><br><span class="line">option java_package &#x3D; &quot;com.google.api&quot;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Defines the HTTP configuration for a service. It contains a list of</span><br><span class="line">&#x2F;&#x2F; [HttpRule][google.api.HttpRule], each specifying the mapping of an RPC method</span><br><span class="line">&#x2F;&#x2F; to one or more HTTP REST API methods.</span><br><span class="line">message Http &#123;</span><br><span class="line">  &#x2F;&#x2F; A list of HTTP rules for configuring the HTTP REST API methods.</span><br><span class="line">  repeated HttpRule rules &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Use CustomHttpPattern to specify any HTTP method that is not included in the</span><br><span class="line">&#x2F;&#x2F; &#96;pattern&#96; field, such as HEAD, or &quot;*&quot; to leave the HTTP method unspecified for</span><br><span class="line">&#x2F;&#x2F; a given URL path rule. The wild-card rule is useful for services that provide</span><br><span class="line">&#x2F;&#x2F; content to Web (HTML) clients.</span><br><span class="line">message HttpRule &#123;</span><br><span class="line">  &#x2F;&#x2F; Selects methods to which this rule applies.</span><br><span class="line">  &#x2F;&#x2F;</span><br><span class="line">  &#x2F;&#x2F; Refer to [selector][google.api.DocumentationRule.selector] for syntax details.</span><br><span class="line">  string selector &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Determines the URL pattern is matched by this rules. This pattern can be</span><br><span class="line">  &#x2F;&#x2F; used with any of the &#123;get|put|post|delete|patch&#125; methods. A custom method</span><br><span class="line">  &#x2F;&#x2F; can be defined using the &#39;custom&#39; field.</span><br><span class="line">  oneof pattern &#123;</span><br><span class="line">    &#x2F;&#x2F; Used for listing and getting information about resources.</span><br><span class="line">    string get &#x3D; 2;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string put &#x3D; 3;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for creating a resource.</span><br><span class="line">    string post &#x3D; 4;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for deleting a resource.</span><br><span class="line">    string delete &#x3D; 5;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Used for updating a resource.</span><br><span class="line">    string patch &#x3D; 6;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Custom pattern is used for defining custom verbs.</span><br><span class="line">    CustomHttpPattern custom &#x3D; 8;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The name of the request field whose value is mapped to the HTTP body, or</span><br><span class="line">  &#x2F;&#x2F; &#96;*&#96; for mapping all fields not captured by the path pattern to the HTTP</span><br><span class="line">  &#x2F;&#x2F; body. NOTE: the referred field must not be a repeated field.</span><br><span class="line">  string body &#x3D; 7;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; Additional HTTP bindings for the selector. Nested bindings must</span><br><span class="line">  &#x2F;&#x2F; not contain an &#96;additional_bindings&#96; field themselves (that is,</span><br><span class="line">  &#x2F;&#x2F; the nesting may only be one level deep).</span><br><span class="line">  repeated HttpRule additional_bindings &#x3D; 11;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; A custom pattern is used for defining custom HTTP verb.</span><br><span class="line">message CustomHttpPattern &#123;</span><br><span class="line">  &#x2F;&#x2F; The name of this custom HTTP verb.</span><br><span class="line">  string kind &#x3D; 1;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; The path matched by this custom verb.</span><br><span class="line">  string path &#x3D; 2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><code>hello.proto</code></li>
+</ol>
+<p>这一小节将编写<code>Demo</code>的<code>.proto</code>文件，我们在<code>proto</code>目录下新建<code>hello.proto</code>文件，写入文件内容：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">syntax &#x3D; &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">package proto;</span><br><span class="line"></span><br><span class="line">import &quot;google&#x2F;api&#x2F;annotations.proto&quot;;</span><br><span class="line"></span><br><span class="line">service HelloWorld &#123;</span><br><span class="line">    rpc SayHelloWorld(HelloWorldRequest) returns (HelloWorldResponse) &#123;</span><br><span class="line">        option (google.api.http) &#x3D; &#123;</span><br><span class="line">            post: &quot;&#x2F;hello_world&quot;</span><br><span class="line">            body: &quot;*&quot;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldRequest &#123;</span><br><span class="line">    string referer &#x3D; 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorldResponse &#123;</span><br><span class="line">    string message &#x3D; 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在<code>hello.proto</code>文件中，引用了<code>google/api/annotations.proto</code>，达到支持<code>HTTP Option</code>的效果</p>
+<ul>
+<li>定义了一个<code>service</code>RPC服务<code>HelloWorld</code>，在其内部定义了一个<code>HTTP Option</code>的<code>POST</code>方法，<code>HTTP</code>响应路径为<code>/hello_world</code></li>
+<li>定义<code>message</code>类型<code>HelloWorldRequest</code>、<code>HelloWorldResponse</code>，用于响应请求和返回结果</li>
+</ul>
+<h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a><strong>编译</strong></h2><p>在编写完<code>.proto</code>文件后，我们需要对其进行编译，就能够在<code>server</code>中使用</p>
+<p>进入<code>proto</code>目录，执行以下命令</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 编译google.api</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;protobuf&#x2F;descriptor.proto&#x3D;github.com&#x2F;golang&#x2F;protobuf&#x2F;protoc-gen-go&#x2F;descriptor:. google&#x2F;api&#x2F;*.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.proto</span><br><span class="line">protoc -I . --go_out&#x3D;plugins&#x3D;grpc,Mgoogle&#x2F;api&#x2F;annotations.proto&#x3D;grpc-hello-world&#x2F;proto&#x2F;google&#x2F;api:. .&#x2F;hello.proto</span><br><span class="line"></span><br><span class="line">#编译hello_http.proto为hello_http.pb.gw.proto</span><br><span class="line">protoc --grpc-gateway_out&#x3D;logtostderr&#x3D;true:. .&#x2F;hello.proto</span><br></pre></td></tr></table></figure>
+
+<p>执行完毕后将生成<code>hello.pb.go</code>和<code>hello.gw.pb.go</code>，分别针对<code>grpc</code>和<code>grpc-gateway</code>的功能支持</p>
+<h3 id="命令行模块-cmd"><a href="#命令行模块-cmd" class="headerlink" title="命令行模块 cmd"></a><strong>命令行模块</strong> <code>cmd</code></h3><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a><strong>介绍</strong></h2><p>这一小节我们编写命令行模块，为什么要独立出来呢，是为了将<code>cmd</code>和<code>server</code>两者解耦，避免混淆在一起。</p>
+<p>我们采用 <a href="https://github.com/spf13/cobra" target="_blank" rel="noopener">Cobra</a> 来完成这项功能，<code>Cobra</code>既是创建强大的现代CLI应用程序的库，也是生成应用程序和命令文件的程序。提供了以下功能：</p>
+<ul>
+<li>简易的子命令行模式</li>
+<li>完全兼容posix的命令行模式(包括短和长版本)</li>
+<li>嵌套的子命令</li>
+<li>全局、本地和级联<code>flags</code></li>
+<li>使用<code>Cobra</code>很容易的生成应用程序和命令，使用<code>cobra create appname</code>和<code>cobra add cmdname</code></li>
+<li>智能提示</li>
+<li>自动生成commands和flags的帮助信息</li>
+<li>自动生成详细的help信息<code>-h</code>，<code>--help</code>等等</li>
+<li>自动生成的bash自动完成功能</li>
+<li>为应用程序自动生成手册</li>
+<li>命令别名</li>
+<li>定义您自己的帮助、用法等的灵活性。</li>
+<li>可选与<a href="https://github.com/spf13/viper" target="_blank" rel="noopener">viper</a>紧密集成的apps</li>
+</ul>
+<p>—选自某百科</p>
+<h2 id="编写server"><a href="#编写server" class="headerlink" title="编写server"></a><strong>编写<code>server</code></strong></h2><p>在编写<code>cmd</code>时需要先用<code>server</code>进行测试关联，因此这一步我们先写<code>server.go</code>用于测试</p>
+<p>在<code>server</code>模块下 新建<code>server.go</code>文件，写入测试内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> server</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    ServerPort <span class="keyword">string</span></span><br><span class="line">    CertName <span class="keyword">string</span></span><br><span class="line">    CertPemPath <span class="keyword">string</span></span><br><span class="line">    CertKeyPath <span class="keyword">string</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Serve</span><span class="params">()</span> <span class="params">(err error)</span></span>&#123;</span><br><span class="line">    log.Println(ServerPort)</span><br><span class="line"></span><br><span class="line">    log.Println(CertName)</span><br><span class="line"></span><br><span class="line">    log.Println(CertPemPath)</span><br><span class="line"></span><br><span class="line">    log.Println(CertKeyPath)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编写cmd"><a href="#编写cmd" class="headerlink" title="编写cmd"></a><strong>编写<code>cmd</code></strong></h2><p>在<code>cmd</code>模块下 新建<code>root.go</code>文件，写入内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"os"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> rootCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"grpc"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Execute</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> err := rootCmd.Execute(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(err)</span><br><span class="line">        os.Exit(<span class="number">-1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>emmm….这个官网的Hello World还是有点多的,今天就不写了~~</p>
+<p>新建<code>server.go</code>文件，写入内容：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"github.com/spf13/cobra"</span></span><br><span class="line"></span><br><span class="line">    <span class="string">"grpc-hello-world/server"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> serverCmd = &amp;cobra.Command&#123;</span><br><span class="line">    Use:   <span class="string">"server"</span>,</span><br><span class="line">    Short: <span class="string">"Run the gRPC hello-world server"</span>,</span><br><span class="line">    Run: <span class="function"><span class="keyword">func</span><span class="params">(cmd *cobra.Command, args []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                log.Println(<span class="string">"Recover error : %v"</span>, err)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;()</span><br><span class="line"></span><br><span class="line">        server.Serve()</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.ServerPort, <span class="string">"port"</span>, <span class="string">"p"</span>, <span class="string">"50052"</span>, <span class="string">"server port"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertPemPath, <span class="string">"cert-pem"</span>, <span class="string">""</span>, <span class="string">"./certs/server.pem"</span>, <span class="string">"cert pem path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertKeyPath, <span class="string">"cert-key"</span>, <span class="string">""</span>, <span class="string">"./certs/server.key"</span>, <span class="string">"cert key path"</span>)</span><br><span class="line">    serverCmd.Flags().StringVarP(&amp;server.CertName, <span class="string">"cert-name"</span>, <span class="string">""</span>, <span class="string">"grpc server name"</span>, <span class="string">"server's hostname"</span>)</span><br><span class="line">    rootCmd.AddCommand(serverCmd)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们在<code>grpc-hello-world/</code>目录下，新建文件<code>main.go</code>，写入内容：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;grpc-hello-world&#x2F;cmd&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    cmd.Execute()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="讲解"><a href="#讲解" class="headerlink" title="讲解"></a><strong>讲解</strong></h2><p>要使用<code>Cobra</code>，按照<code>Cobra</code>标准要创建<code>main.go</code>和一个<code>rootCmd</code>文件，另外我们有子命令<code>server</code></p>
+<p>1、<code>rootCmd</code>： <code>rootCmd</code>表示在没有任何子命令的情况下的基本命令</p>
+<p>2、<code>&amp;cobra.Command</code>：</p>
+<ul>
+<li><code>Use</code>：<code>Command</code>的用法，<code>Use</code>是一个行用法消息</li>
+<li><code>Short</code>：<code>Short</code>是<code>help</code>命令输出中显示的简短描述</li>
+<li><code>Run</code>：运行:典型的实际工作功能。大多数命令只会实现这一点；另外还有<code>PreRun</code>、<code>PreRunE</code>、<code>PostRun</code>、<code>PostRunE</code>等等不同时期的运行命令，但比较少用，具体使用时再查看亦可</li>
+</ul>
+<p>3、<code>rootCmd.AddCommand</code>：<code>AddCommand</code>向这父命令（<code>rootCmd</code>）添加一个或多个命令</p>
+<p>4、<code>serverCmd.Flags().StringVarP()</code>：</p>
+<p>一般来说，我们需要在<code>init()</code>函数中定义<code>flags</code>和处理配置，以<code>serverCmd.Flags().StringVarP(&amp;server.ServerPort, &quot;port&quot;, &quot;p&quot;, &quot;50052&quot;, &quot;server port&quot;)</code>为例，我们定义了一个<code>flag</code>，值存储在<code>&amp;server.ServerPort</code>中，长命令为<code>--port</code>，短命令为<code>-p</code>，，默认值为<code>50052</code>，命令的描述为<code>server port</code>。这一种调用方式成为<code>Local Flags</code></p>
+<p>我们延伸一下，如果觉得每一个子命令都要设一遍觉得很麻烦，我们可以采用<code>Persistent Flags</code>：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">rootCmd.PersistentFlags().BoolVarP(&amp;Verbose, &quot;verbose&quot;, &quot;v&quot;, false, &quot;verbose output&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>作用：</p>
+<p><code>flag</code>是可以持久的，这意味着该<code>flag</code>将被分配给它所分配的命令以及该命令下的每个命令。对于全局标记，将标记作为根上的持久标志。</p>
+<p>另外还有<code>Local Flag on Parent Commands</code>、<code>Bind Flags with Config</code>、<code>Required flags</code>等等，使用到再 <a href="https://github.com/spf13/cobra#local-flag-on-parent-commands" target="_blank" rel="noopener">传送</a> 了解即可</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a><strong>测试</strong></h2><p>回到<code>grpc-hello-world/</code>目录下执行<code>go run main.go server</code>，查看输出是否为（此时应为默认值）：</p>
+<p>咕咕</p>
+<p>@copyright ————baijianruoliorz@Github——————————–</p>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>Grpc</tag>
+        <tag>blog</tag>
+        <tag>分布式</tag>
       </tags>
   </entry>
   <entry>
@@ -408,6 +426,32 @@
       <tags>
         <tag>blog</tag>
         <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/posts/520520/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>夜谈</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
+        <tag>总结</tag>
+        <tag>平淡の日常</tag>
       </tags>
   </entry>
   <entry>
@@ -489,6 +533,19 @@
       </categories>
       <tags>
         <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>重返高中祭</title>
+    <url>/posts/1388/</url>
+    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
+<p>update:好累,好撑,洗个澡先睡一觉…</p>
+]]></content>
+      <categories>
+        <category>摸鱼</category>
+      </categories>
+      <tags>
+        <tag>摸鱼</tag>
       </tags>
   </entry>
   <entry>
@@ -674,16 +731,18 @@
       </tags>
   </entry>
   <entry>
-    <title>重返高中祭</title>
-    <url>/posts/1388/</url>
-    <content><![CDATA[<p>今天回高中,和同学玩一天,有什么夜晚回来再说吧.</p>
-<p>update:好累,好撑,洗个澡先睡一觉…</p>
+    <title>面向字节学习-GO(一)</title>
+    <url>/posts/37808/</url>
+    <content><![CDATA[<p>面向字节学习-GO</p>
+<p>本系列博客为&lt;&lt;Go语言设计实现&gt;&gt;阅读心得.</p>
 ]]></content>
       <categories>
-        <category>摸鱼</category>
+        <category>Go</category>
       </categories>
       <tags>
-        <tag>摸鱼</tag>
+        <tag>blog</tag>
+        <tag>GO</tag>
+        <tag>字节面试准备</tag>
       </tags>
   </entry>
   <entry>
@@ -755,21 +814,6 @@
       <tags>
         <tag>blog</tag>
         <tag>中间件</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>面向字节学习-GO(一)</title>
-    <url>/posts/37808/</url>
-    <content><![CDATA[<p>面向字节学习-GO</p>
-<p>本系列博客为&lt;&lt;Go语言设计实现&gt;&gt;阅读心得.</p>
-]]></content>
-      <categories>
-        <category>Go</category>
-      </categories>
-      <tags>
-        <tag>blog</tag>
-        <tag>GO</tag>
-        <tag>字节面试准备</tag>
       </tags>
   </entry>
   <entry>

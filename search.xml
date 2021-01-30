@@ -598,7 +598,11 @@
   <entry>
     <title>为之后端冬令营</title>
     <url>/posts/3794/</url>
-    <content><![CDATA[<p>为之2021冬令营–&gt;后端方向</p>
+    <content><![CDATA[<p>update:2020.01.11</p>
+<p>本文作于2020.12.17 期末复习摸鱼所得</p>
+<p>首先分享一句话 <strong>“互联网时代正确使用搜索工具与否是人与动物的根本区别”</strong></p>
+<p><del>如果你觉得上面这句话好像有点道理,可以设置成你的QQ个性签名或者微信的个性签名</del>.</p>
+<p>为之2021冬令营–&gt;后端方向</p>
 <h2 id="应该是前言一样的存在"><a href="#应该是前言一样的存在" class="headerlink" title="应该是前言一样的存在"></a><strong>应该是前言一样的存在</strong></h2><p>前段时间浩天学长跟我说了手有没有兴趣做一做为之后端的冬令营,出于好奇以及<del>责任感</del>我答应了下来.正巧一是现在复习文化课没什么动力,二是自己的博客水文似乎很久没有去水一篇了,所以打算写个大致的规划.</p>
 <p>看了一手浩天学长的2020年冬季的冬令营文章.觉得珠玉在前的同时也深感压力.(<del>可能因为我很多不会吧</del>)</p>
 <p>那么2021为之冬令营的主要科普(也许这个词比较合适)是Java,Java作为目前后端主流的开发语言重要性不言而喻.所以我们选择Java也就选择了未来主流趋势.(当然2020年冬令营介绍的GO语言也是一门十分不错的语言.)</p>
@@ -627,6 +631,9 @@
 <p>- 结构中立和可移植性</p>
 <p>Java设计者考虑的主要问题是程序代码的持久性和可移植性。程序员面临的一个主要问题是，不能保证今天编写的程序明天仍然能在同一台机器上顺利运行。操作系统升级、处理器升级以及核心系统资源的变化，都可能导致程序无法继续运行</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h2><p>总而言之,看了上面的Java的特点,我觉得我也有很多对Java还未了解的地方,希望在可以向大家传送一些知识的同时自己也能有所感悟,互相进步.</p>
+<p>以及这篇文章真的只是单纯的前言,大家可以先看一看Java的语法,这里指的是萌新(不是大佬装的假萌新,是真的萌新的萌新).</p>
+<p>13号会陆续开始发资料<del>即使现在根本还没准备</del> 到时候就可以在知道Java语法之后更加<del>得心应手</del>!</p>
+<p>(好像大一下期会学习,希望大家选的不是python)</p>
 <p>贴一下我的GitHub以及个人博客的地址,欢迎交流学习.</p>
 <p><a href="https://github.com/baijianruoliorz" target="_blank" rel="noopener">https://github.com/baijianruoliorz</a></p>
 <p><a href="https://yangxiangrui.site/">https://yangxiangrui.site/</a></p>
@@ -905,6 +912,54 @@
         <category>夜谈</category>
       </categories>
       <tags>
+        <tag>夜谈</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Netty的简单使用</title>
+    <url>/posts/37390/</url>
+    <content><![CDATA[<h1 id="NETTY"><a href="#NETTY" class="headerlink" title="NETTY"></a>NETTY</h1><p>这篇博客暂时不讲原理，首先搭建起一个简单的可以实现通信的Demo。之后的一系列随笔会进行一些原理上的分享。</p>
+<p>不过在这之前大家最好了解一下Netty的线程模型和NIO编程模型，会对它的整体逻辑有所了解。</p>
+<p><strong>首先创建好项目后在pom.xml引入Netty依赖</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;io.netty&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;netty-all&lt;&#x2F;artifactId&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>用Netty搭建一个WebSocket服务器整体上需要三样东西，不管是不是用的SpringBoot框架，这三样东西是必不可少的。</p>
+<p>1.启动服务器的类（NettyServer），会进行一些初步的配置工作。</p>
+<p>2.助手类（Handler），有自己定义的助手类，也有Netty提供的一些基本的助手类，比如对Http、WebSocket支持的助手类。</p>
+<p>3.初始化器（Initializer），我们下面使用的是主从线程模型，从线程组里会分配出不同channel去处理不同客户端的请求，而每个channel里就会有各种助手类去实现一些功能。初始化器的作用就是对各种助手类进行绑定。</p>
+<p><strong>服务器启动类：</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NettyServer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> port;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NettyServer</span><span class="params">(<span class="keyword">int</span> port)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.port = port;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;<span class="comment">//在main方法里调用这个方法，并用构造函数设置端口号</span></span><br><span class="line">        <span class="comment">//创建主线程组，接收请求</span></span><br><span class="line">        EventLoopGroup bossGroup = <span class="keyword">new</span> NioEventLoopGroup();</span><br><span class="line">        <span class="comment">//创建从线程组，处理主线程组分配下来的io操作</span></span><br><span class="line">        EventLoopGroup workerGroup = <span class="keyword">new</span> NioEventLoopGroup();</span><br><span class="line">        <span class="comment">//创建netty服务器</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ServerBootstrap serverBootstrap = <span class="keyword">new</span> ServerBootstrap();</span><br><span class="line">            serverBootstrap.group(bossGroup, workerGroup)<span class="comment">//设置主从线程组</span></span><br><span class="line">                    .channel(NioServerSocketChannel<span class="class">.<span class="keyword">class</span>)//设置通道</span></span><br><span class="line"><span class="class">                    .<span class="title">childHandler</span>(<span class="title">new</span> <span class="title">NettyServerInitializer</span>())</span>;<span class="comment">//子处理器，用于处理workerGroup中的操作</span></span><br><span class="line">            <span class="comment">//启动server</span></span><br><span class="line">            ChannelFuture channelFuture = serverBootstrap.bind(port).sync();</span><br><span class="line">            <span class="comment">//监听关闭channel</span></span><br><span class="line">            channelFuture.channel().closeFuture().sync();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            bossGroup.shutdownGracefully();<span class="comment">//关闭主线程</span></span><br><span class="line">            workerGroup.shutdownGracefully();<span class="comment">//关闭从线程</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p><strong>初始化器：</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NettyServerInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">SocketChannel</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(SocketChannel socketChannel)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ChannelPipeline pipeline= socketChannel.pipeline();</span><br><span class="line">        <span class="comment">//以下三个是Http的支持</span></span><br><span class="line">        <span class="comment">//http解码器</span></span><br><span class="line">        pipeline.addLast(<span class="keyword">new</span> HttpServerCodec());</span><br><span class="line">        <span class="comment">//支持写大数据流</span></span><br><span class="line">        pipeline.addLast(<span class="keyword">new</span> ChunkedWriteHandler());</span><br><span class="line">        <span class="comment">//http聚合器</span></span><br><span class="line">        pipeline.addLast(<span class="keyword">new</span> HttpObjectAggregator(<span class="number">1024</span>*<span class="number">62</span>));</span><br><span class="line">        <span class="comment">//websocket支持,设置路由</span></span><br><span class="line">        pipeline.addLast(<span class="keyword">new</span> WebSocketServerProtocolHandler(<span class="string">"/ws"</span>));</span><br><span class="line">        <span class="comment">//添加自定义的助手类</span></span><br><span class="line">        pipeline.addLast(<span class="keyword">new</span> NettyHandler());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="javascript:void(0);"><img src="/" class="lazyload" data-src="https://common.cnblogs.com/images/copycode.gif"  alt="复制代码"></a></p>
+<p><strong>自定义助手类：</strong></p>
+<p>这个类就是业务的核心，客户端的请求会在这里处理。比如客户端连接、客户端发送消息、给客户端发送消息等等。</p>
+<p>自定义助手类需要重写的方法可以根据自己的需求重写，这里就不把每个方法都重写一遍了，完整的大家可以去找找文档看看。</p>
+<p>如果需要在助手类中用到@Autowire注解，可以参考这个博客，网上有很多说明，这里就不再重复了<a href="https://blog.csdn.net/weixin_30828379/article/details/95009595" target="_blank" rel="noopener">https://blog.csdn.net/weixin_30828379/article/details/95009595</a></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NettyHandler</span> <span class="keyword">extends</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">TextWebSocketFrame</span>&gt; </span>&#123;<span class="comment">//TextWebSocketFrame是netty用于处理websocket发来的文本对象</span></span><br><span class="line">　　<span class="comment">//所有正在连接的channel都会存在这里面，所以也可以间接代表在线的客户端</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> ChannelGroup channelGroup = <span class="keyword">new</span> DefaultChannelGroup(GlobalEventExecutor.INSTANCE);</span><br><span class="line">　　<span class="comment">//在线人数</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> online;</span><br><span class="line">    <span class="comment">//接收到客户都发送的消息</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, TextWebSocketFrame msg)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        SendAllMessages(ctx,send_message);<span class="comment">//send_message是我的自定义类型，前后端分离往往需要统一数据格式，可以先把对象转成json字符串再发送给客户端</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//客户端建立连接</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handlerAdded</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        channelGroup.add(ctx.channel());</span><br><span class="line">        online=channelGroup.size();</span><br><span class="line">        System.out.println(ctx.channel().remoteAddress()+<span class="string">"上线了!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//关闭连接</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handlerRemoved</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        channelGroup.remove(ctx.channel());</span><br><span class="line">        online=channelGroup.size();</span><br><span class="line">        System.out.println(ctx.channel().remoteAddress()+<span class="string">"断开连接"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//出现异常</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">exceptionCaught</span><span class="params">(ChannelHandlerContext ctx, Throwable cause)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        cause.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//给某个人发送消息</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">SendMessage</span><span class="params">(ChannelHandlerContext ctx, Send_Message msg)</span> </span>&#123;</span><br><span class="line">        ctx.channel().writeAndFlush(<span class="keyword">new</span> TextWebSocketFrame(JSON.toJSONString(msg)));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//给每个人发送消息,除发消息人外</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">SendAllMessages</span><span class="params">(ChannelHandlerContext ctx,Send_Message msg)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(Channel channel:channelGroup)&#123;</span><br><span class="line">            <span class="keyword">if</span>(!channel.id().asLongText().equals(ctx.channel().id().asLongText()))&#123;</span><br><span class="line">                channel.writeAndFlush(<span class="keyword">new</span> TextWebSocketFrame(JSON.toJSONString(msg)));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="javascript:void(0);"><img src="/" class="lazyload" data-src="https://common.cnblogs.com/images/copycode.gif"  alt="复制代码"></a></p>
+<p><strong>前端创建WebSocket对象进行访问</strong></p>
+<p>通过socket就可以用一些api进行发送消息，接收消息的操作。然后把接收的数据按各自的需求展示出来就行了，前端部分就不再赘述了。</p>
+<p>下面8088端口记得要在main方法里面设置。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (window.WebSocket) &#123;</span><br><span class="line">        var host &#x3D; window.location.hostname;</span><br><span class="line">        var url &#x3D; &quot;ws:&#x2F;&#x2F;&quot; + host + &quot;:8088&#x2F;ws&quot;;</span><br><span class="line">        var socket &#x3D; new WebSocket(url);</span><br><span class="line">&#125;else&#123;</span><br><span class="line">     alert(&quot;你的浏览器不支持WebSocket。请不要使用低版本的IE浏览器。&quot;);   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Netty</category>
+      </categories>
+      <tags>
+        <tag>blog</tag>
         <tag>夜谈</tag>
       </tags>
   </entry>

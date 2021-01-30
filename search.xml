@@ -917,7 +917,7 @@
   </entry>
   <entry>
     <title>Netty的简单使用</title>
-    <url>/posts/37390/</url>
+    <url>/posts/49691/</url>
     <content><![CDATA[<h1 id="NETTY"><a href="#NETTY" class="headerlink" title="NETTY"></a>NETTY</h1><p>这篇博客暂时不讲原理，首先搭建起一个简单的可以实现通信的Demo。之后的一系列随笔会进行一些原理上的分享。</p>
 <p>不过在这之前大家最好了解一下Netty的线程模型和NIO编程模型，会对它的整体逻辑有所了解。</p>
 <p><strong>首先创建好项目后在pom.xml引入Netty依赖</strong></p>

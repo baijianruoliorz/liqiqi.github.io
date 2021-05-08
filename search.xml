@@ -1086,4 +1086,67 @@
         <tag>-总结 -感想</tag>
       </tags>
   </entry>
+  <entry>
+    <title>MIT6.824(MapReduce)</title>
+    <url>/posts/29406/</url>
+    <content><![CDATA[<h3 id="再学MIT6-824之MapReduce"><a href="#再学MIT6-824之MapReduce" class="headerlink" title="再学MIT6.824之MapReduce"></a>再学MIT6.824之MapReduce</h3><h4 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h4><p>最近闲下来的时间打算重新学一遍MIT6.824的相关课程.故有此系列博客,希望这次能坚持学完.</p>
+<h4 id="所需paper"><a href="#所需paper" class="headerlink" title="所需paper"></a>所需paper</h4><p><a href="https://chunlife.top/2020/04/18/Google-MapReduce%E4%B8%AD%E6%96%87%E7%89%88/" target="_blank" rel="noopener">Google MapReduce中文版论文</a></p>
+<h4 id="工作流"><a href="#工作流" class="headerlink" title="工作流"></a>工作流</h4><p><img src="/" class="lazyload" data-src="https://tvax4.sinaimg.cn/large/007R3gFUly1gqbb1f4qjyj30mx0cv3z5.jpg"  alt=""></p>
+<p>这里有张图我觉得很好的解释了MapReduce的主要工作流程</p>
+<p>MapReduce本身正如论文所言是一个编程模型 一个处理和生成超大数据集的算法模型的相关实现 其主要通过两个操作实现 <code>Map</code>和<code>Reduce</code></p>
+<p>其中 MapReduce的工作流程为</p>
+<ol>
+<li>将输入文件分成M个小文件(每个文件大小在16-64M),在集群中启动MapReduce实例,其中一个Master和多个可用的Worker.</li>
+<li>由Master分配任务,将Map任务分配给可用的Worker</li>
+<li>Map Worker读取文件,执行用户自定义的map函数,输出key/value对,缓存在内存中</li>
+<li>内存中的k v 对通过<code>partitioning function()</code>例如hash(key) mod R 分为R个regions,然后写入磁盘.完成之后.把这些文件的地址回传给Master,然后Master把这些位置传给Reduce Worker.</li>
+<li>Reduce Worker 收到数据存储位置信息后,使用RPC从MapWorker所在的磁盘读取这些数据,根据key进行排序,并将同一key的所有数据分组聚合在一起—-&gt;==因为太多不同的key值会映射到相同的Reduce任务上,因此必须进行排序,如果中间数据太大而无法在内存中进行排序,那么就要在外部进行排序==</li>
+<li>Reduce Worker 将分组后的值传给用户自定义的reduce函数,输出追加到所属分区的输出分区文件中</li>
+<li>当多有的map任务和reduce任务都完成后,Master向用户发送程序返回结果</li>
+</ol>
+<h5 id="实例"><a href="#实例" class="headerlink" title="实例:"></a>实例:</h5><p>词频统计: map 函数可以将单个句子的每个单词统计输出&lt;word,count&gt;,然后reduce 函数同一组的所有计数依次相加,得到&lt;word,total count&gt;</p>
+<p>paper:</p>
+<p>例如，计算一个大的文档集合中每个单词出现的次数，下面是伪代码段：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"> map(String key, String value):</span><br><span class="line"></span><br><span class="line"> &#x2F;&#x2F; key: document name </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;value: document contents for each word w in value: EmitIntermediate(w, “1″); </span><br><span class="line">reduce(String key, Iterator values): &#x2F;&#x2F; key: a word &#x2F;&#x2F; values: a list of counts int result &#x3D; 0; </span><br><span class="line"></span><br><span class="line">for each v in values: result +&#x3D; ParseInt(v); </span><br><span class="line"></span><br><span class="line">Emit(AsString(result));</span><br></pre></td></tr></table></figure>
+
+<p>Map函数输出文档中的每个词、以及这个词的出现次数(在这个简单的例子里就是1)。Reduce函数把Map 函数产生的每一个特定的词的计数累加起来。 另外，用户编写代码，使用输入和输出文件的名字、可选的调节参数来完成一个符合MapReduce模型规 范的对象，然后调用MapReduce函数，并把这个规范对象传递给它。用户的代码和MapReduce库链接在 一起(用C++实现)。附录A包含了这个实例的全部程序代码。</p>
+<h6 id="更多的例子-paper2-3"><a href="#更多的例子-paper2-3" class="headerlink" title="更多的例子:(paper2-3)"></a>更多的例子:(paper2-3)</h6><ul>
+<li>这里还有一些有趣的简单例子，可以很容易的使用MapReduce模型来表示： 分布式的Grep：Map函数输出匹配某个模式的一行，Reduce函数是一个恒等函数，即把中间数据 复制到输出。</li>
+<li>计算URL访问频率：Map函数处理日志中web页面请求的记录，然后输出(URL,1)。Reduce函数把 相同URL的value值都累加起来，产生(URL,记录总数)结果。 </li>
+<li>倒转网络链接图：Map函数在源页面（source）中搜索所有的链接目标（target）并输出为 (target,source)。Reduce函数把给定链接目标（target）的链接组合成一个列表，输出 (target,list(source))。 </li>
+<li>每个主机的检索词向量：检索词向量用一个(词,频率)列表来概述出现在文档或文档集中的最重要的 一些词。Map函数为每一个输入文档输出(主机名,检索词向量)，其中主机名来自文档的URL。 Reduce函数接收给定主机的所有文档的检索词向量，并把这些检索词向量加在一起，丢弃掉低频的 检索词，输出一个最终的(主机名,检索词向量)。</li>
+<li>倒排索引：Map函数分析每个文档输出一个(词,文档号)的列表，Reduce函数的输入是一个给定词的 所有（词，文档号），排序所有的文档号，输出(词,list（文档号）)。所有的输出集合形成一个简单 的倒排索引，它以一种简单的算法跟踪词在文档中的位置。</li>
+<li>分布式排序：Map函数从每个记录提取key，输出(key,record)。Reduce函数不改变任何的值。这 个运算依赖分区机制(在4.1描述)和排序属性(在4.2描述)。</li>
+</ul>
+<h4 id="容错性"><a href="#容错性" class="headerlink" title="容错性:"></a>容错性:</h4><ul>
+<li>Worker故障:Master周期性的ping每个worker,如果指定时间内没回应就是宕了.将这个Worker标记为失效,分配给这个Worker的任务将重新分配给其他的Worker.</li>
+<li>Master故障:终止整个MapReduce运算,重新开始执行,一般比较少见.</li>
+</ul>
+<p>其实分布式系统设计的容错性都大同小异…</p>
+<h4 id="性能"><a href="#性能" class="headerlink" title="性能"></a><strong>性能</strong></h4><p>具体性能相关的内容请看 原paper 5 这一节这里只摘录两个例子</p>
+<h5 id="网络带宽匮乏"><a href="#网络带宽匮乏" class="headerlink" title="网络带宽匮乏"></a><strong>网络带宽匮乏</strong></h5><p>在撰写该 paper 时，网络带宽是一个相当匮乏的资源。Master 在调度 Map 任务时会考虑输入文件的位置信息，尽量将一个 Map 任务调度在包含相关输入数据拷贝的机器上执行；如果找不到，Master 将尝试在保存输入数据拷贝的附近的机器上执行 Map 任务。</p>
+<p>需要注意的是，新的讲座视频提到，<strong>随着后来 Google 的基础设施的扩展和升级，他们对这种存储位置优化的依赖程度降低了</strong>。</p>
+<p>原文:</p>
+<p>在我们的计算运行环境中，网络带宽是一个相当匮乏的资源。我们通过尽量把输入数据(由GFS管理)存储 在集群中机器的本地磁盘上来节省网络带宽。GFS把每个文件按64MB一个Block分隔，每个Block保存在 多台机器上，环境中就存放了多份拷贝(一般是3个拷贝)。MapReduce的master在调度Map任务时会考 虑输入文件的位置信息，尽量将一个Map任务调度在包含相关输入数据拷贝的机器上执行；如果上述努力 失败了，master将尝试在保存有输入数据拷贝的机器附近的机器上执行Map任务(例如，分配到一个和包 含输入数据的机器在一个switch里的worker机器上执行)。当在一个足够大的cluster集群上运行大型 MapReduce操作的时候，大部分的输入数据都能从本地机器读取，因此消耗非常少的网络带宽。</p>
+<h5 id="“落伍者-Stragglers-”"><a href="#“落伍者-Stragglers-”" class="headerlink" title="“落伍者(Stragglers)”"></a><strong>“落伍者(Stragglers)”</strong></h5><p>影响 MapReduce 执行时间的另一个因素是“落伍者”：一台机器花了很长的时间才完成最后几个 Map 或 Reduce 任务(<em>例如：有台机器硬盘出了问题</em>)，导致总的 MapReduce 执行时间超过预期。</p>
+<p>通过备用任务(backup tasks)来处理：当 MapReduce 操作快完成的时候，Master 调度备用任务进程来执行剩下的、处于处理中的任务。无论是最初的进程还是备用任务进程任务完成了任务，都将该任务标记为已完成。</p>
+<p>原文的解决方法:</p>
+<p>我们有一个通用的机制来减少“落伍者”出现的情况。当一个MapReduce操作接近完成的时候，master调 度备用（backup）任务进程来执行剩下的、处于处理中状态（in-progress）的任务。无论是最初的执行 进程、还是备用（backup）任务进程完成了任务，我们都把这个任务标记成为已经完成。我们调优了这 个机制，通常只会占用比正常操作多几个百分点的计算资源。我们发现采用这样的机制对于减少超大 MapReduce操作的总处理时间效果显著。例如，在5.3节描述的排序任务，在关闭掉备用任务的情况下要 多花44%的时间完成排序任务。</p>
+<h4 id="一些拓展性的技巧"><a href="#一些拓展性的技巧" class="headerlink" title="一些拓展性的技巧"></a>一些拓展性的技巧</h4><p>见原文第四标题中</p>
+<p>一些小小的例子:</p>
+<h5 id="跳过损坏的记录"><a href="#跳过损坏的记录" class="headerlink" title="跳过损坏的记录:"></a>跳过损坏的记录:</h5><p>用户程序中的bug导致Map或者Reduce函数在处理某些记录的时候crash.通常会修复bug再执行MapReduce,但是找出bug并修复它往往不是一件容易的事情(bug有可能在第三方库)</p>
+<p>所以与其因为少数的坏记录而导致整个执行失败,不如有一个机制可以让损坏的记录被跳过.这在某些情况下是可以接受的,例如在对一个大型的数据集进行统计分析时.</p>
+<p>Worker可以记录处理最后一条记录的序号发送给Master,当Master看到在处理某条记录失败不止一次时,标记这条记录需要被跳过,下次执行时就跳过这条记录.</p>
+<h5 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h5><p>MapReduce库使用计数器统计不同事件发生次数。比如，用户可能想统计已经处理了多少个单词、已经 索引的多少篇German文档等等。 为了使用这个特性，用户在程序中创建一个命名的计数器对象，在Map和Reduce函数中相应的增加计数 器的值。例如：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Counter* uppercase;</span><br><span class="line"></span><br><span class="line">uppercase &#x3D; GetCounter(“uppercase”); </span><br><span class="line">map(String name, String contents): for each word w in contents: if (IsCapitalized(w)): uppercase-&gt;Increment(); </span><br><span class="line"></span><br><span class="line">EmitIntermediate(w, “1″);</span><br></pre></td></tr></table></figure>
+
+<p>这些计数器的值周期性的从各个单独的worker机器上传递给master（附加在ping的应答包中传递）。 master把执行成功的Map和Reduce任务的计数器值进行累计，当MapReduce操作完成之后，返回给用 户代码。 计数器当前的值也会显示在master的状态页面上，这样用户就可以看到当前计算的进度。当累加计数器的 值的时候，master要检查重复运行的Map或者Reduce任务，避免重复累加（之前提到的备用任务和失效 后重新执行任务这两种情况会导致相同的任务被多次执行）。 有些计数器的值是由MapReduce库自动维持的，比如已经处理的输入的key/value pair的数量、输出的 key/value pair的数量等等。 计数器机制对于MapReduce操作的完整性检查非常有用。比如，在某些MapReduce操作中，用户需要确 保输出的key value pair精确的等于输入的key value pair，或者处理的German文档数量在处理的整个 文档数量中属于合理范围。</p>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>-MIT6.824 -分布式</tag>
+      </tags>
+  </entry>
 </search>

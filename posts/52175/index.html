@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MIT6.824(MapReduce) | Blog-YXR</title><meta name="description" content="再学MIT6.824之MapReduce序言最近闲下来的时间打算重新学一遍MIT6.824的相关课程.故有此系列博客,希望这次能坚持学完. 所需paperGoogle MapReduce中文版论文 工作流 这里有张图我觉得很好的解释了MapReduce的主要工作流程 MapReduce本身正如论文所言是一个编程模型 一个处理和生成超大数据集的算法模型的相关实现 其主要通过两个操作实现 Map和Re"><meta name="keywords" content="-MIT6.824 -分布式"><meta name="author" content="liqiqiorz"><meta name="copyright" content="liqiqiorz"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta name="twitter:card" content="summary"><meta name="twitter:title" content="MIT6.824(MapReduce)"><meta name="twitter:description" content="再学MIT6.824之MapReduce序言最近闲下来的时间打算重新学一遍MIT6.824的相关课程.故有此系列博客,希望这次能坚持学完. 所需paperGoogle MapReduce中文版论文 工作流 这里有张图我觉得很好的解释了MapReduce的主要工作流程 MapReduce本身正如论文所言是一个编程模型 一个处理和生成超大数据集的算法模型的相关实现 其主要通过两个操作实现 Map和Re"><meta name="twitter:image" content="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/2aa8cacf-b998-49b6-85be-d3e6609092f5.png"><meta property="og:type" content="article"><meta property="og:title" content="MIT6.824(MapReduce)"><meta property="og:url" content="https://yangxiangrui.site/posts/52175/"><meta property="og:site_name" content="Blog-YXR"><meta property="og:description" content="再学MIT6.824之MapReduce序言最近闲下来的时间打算重新学一遍MIT6.824的相关课程.故有此系列博客,希望这次能坚持学完. 所需paperGoogle MapReduce中文版论文 工作流 这里有张图我觉得很好的解释了MapReduce的主要工作流程 MapReduce本身正如论文所言是一个编程模型 一个处理和生成超大数据集的算法模型的相关实现 其主要通过两个操作实现 Map和Re"><meta property="og:image" content="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/2aa8cacf-b998-49b6-85be-d3e6609092f5.png"><meta property="article:published_time" content="2021-05-08T00:57:30.000Z"><meta property="article:modified_time" content="2021-05-08T13:49:14.357Z"><script src="https://cdn.jsdelivr.net/npm/js-cookie/dist/js.cookie.min.js"></script><script>var autoChangeMode = '2'
+var t = Cookies.get("theme")
+if (autoChangeMode == '1'){
+  var isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+  var isLightMode = window.matchMedia("(prefers-color-scheme: light)").matches
+  var isNotSpecified = window.matchMedia("(prefers-color-scheme: no-preference)").matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined){
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport){
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour < 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+  }
+  } else if (t == 'light') activateLightMode()
+  else activateDarkMode()
+
+} else if (autoChangeMode == '2'){
+  now = new Date();
+  hour = now.getHours();
+  isNight = hour < 6 || hour >= 18
+  if(t === undefined) isNight? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode() 
+} else {
+  if ( t == 'dark' ) activateDarkMode()
+  else if ( t == 'light') activateLightMode()
+}
+
+function activateDarkMode(){
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#000')
+  }
+}
+function activateLightMode(){
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+  document.querySelector('meta[name="theme-color"]').setAttribute('content','#fff')
+  }
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="canonical" href="https://yangxiangrui.site/posts/52175/"><link rel="next" title="最近" href="https://yangxiangrui.site/posts/29406/"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css"><script src="https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js"></script><script src="https://cdn.jsdelivr.net/npm/blueimp-md5/js/md5.min.js"></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容:${query}"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://xxx/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: true,
+  copyright: undefined,
+  ClickShowText: {"text":"蕾姆,JAVA,QAQ,liqiqi,REM,GO,titan天下第一,PY,liqiqi","fontSize":"15px"},
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  highlightShrink: 'false',
+  isFontAwesomeV5: true,
+  isPhotoFigcaption: false
+  
+}</script><script>var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isSidebar: true  
+  }</script><noscript><style>
+#page-header {
+  opacity: 1
+}
+.justified-gallery img{
+  opacity: 1
+}
+</style></noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sviptzk/HexoStaticFile@master/Hexo/css/flink.min.css"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="https://edu-1014.oss-cn-beijing.aliyuncs.com/2020/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">19</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">15</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">10</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-list" aria-hidden="true"></i><span> 媒体</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/bangumis/"><i class="fa-fw fab fa-youtube"></i><span> 番剧</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> 电影</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书单</span></a></li><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/box/"><i class="fa-fw fab fa-xbox"></i><span> 聚宝盒</span></a></div><div class="menus_item"><a class="site-page" href="/talk/"><i class="fa-fw far fa-comment"></i><span> 微语</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-heartbeat" aria-hidden="true"></i><span> 清单</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/gallery/"><i class="fa-fw far fa-image"></i><span> 相册</span></a></li><li><a class="site-page" href="/home/"><i class="fa-fw fab fa-phoenix-framework"></i><span> 主页</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/contact/"><i class="fa-fw far fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div></div></div></div><i class="fa fa-arrow-right on" id="toggle-sidebar" aria-hidden="true">     </i><div id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#再学MIT6-824之MapReduce"><span class="toc-number">1.</span> <span class="toc-text">再学MIT6.824之MapReduce</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#序言"><span class="toc-number">1.1.</span> <span class="toc-text">序言</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#所需paper"><span class="toc-number">1.2.</span> <span class="toc-text">所需paper</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#工作流"><span class="toc-number">1.3.</span> <span class="toc-text">工作流</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#实例"><span class="toc-number">1.3.1.</span> <span class="toc-text">实例:</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#更多的例子-paper2-3"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">更多的例子:(paper2-3)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#容错性"><span class="toc-number">1.4.</span> <span class="toc-text">容错性:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#性能"><span class="toc-number">1.5.</span> <span class="toc-text">性能</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#网络带宽匮乏"><span class="toc-number">1.5.1.</span> <span class="toc-text">网络带宽匮乏</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#“落伍者-Stragglers-”"><span class="toc-number">1.5.2.</span> <span class="toc-text">“落伍者(Stragglers)”</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#一些拓展性的技巧"><span class="toc-number">1.6.</span> <span class="toc-text">一些拓展性的技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#跳过损坏的记录"><span class="toc-number">1.6.1.</span> <span class="toc-text">跳过损坏的记录:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#计数器"><span class="toc-number">1.6.2.</span> <span class="toc-text">计数器</span></a></li></ol></li></ol></li></ol></div></div></div><div id="body-wrap"><div id="web_bg" data-type="photo"></div><div class="post-bg" id="nav" style="background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/2aa8cacf-b998-49b6-85be-d3e6609092f5.png)"><div id="page-header"><span class="pull_left" id="blog_name"><a class="blog_title" id="site-name" href="/">Blog-YXR</a></span><span class="pull_right menus"><div id="search_button"><a class="site-page social-icon search"><i class="fa fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-list" aria-hidden="true"></i><span> 媒体</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/bangumis/"><i class="fa-fw fab fa-youtube"></i><span> 番剧</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> 电影</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 书单</span></a></li><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/box/"><i class="fa-fw fab fa-xbox"></i><span> 聚宝盒</span></a></div><div class="menus_item"><a class="site-page" href="/talk/"><i class="fa-fw far fa-comment"></i><span> 微语</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-heartbeat" aria-hidden="true"></i><span> 清单</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/gallery/"><i class="fa-fw far fa-image"></i><span> 相册</span></a></li><li><a class="site-page" href="/home/"><i class="fa-fw fab fa-phoenix-framework"></i><span> 主页</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/contact/"><i class="fa-fw far fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fa fa-bars fa-fw" aria-hidden="true"></i></a></span></span></div><div id="post-info"><div id="post-title"><div class="posttitle">MIT6.824(MapReduce)</div></div><div id="post-meta"><div class="meta-firstline"><time class="post-meta__date"><span class="post-meta__date-created" title="发表于 2021-05-08 08:57:30"><i class="fa fa-calendar" aria-hidden="true"></i> 发表于 2021-05-08</span><span class="post-meta__separator">|</span><span class="post-meta__date-updated" title="更新于 2021-05-08 21:49:14"><i class="fa fa-history" aria-hidden="true"></i> 更新于 2021-05-08</span></time><span class="post-meta__categories"><span class="post-meta__separator">|</span><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a></span></div><div class="meta-secondline"> </div><div class="meta-thirdline"><span class="post-meta-pv-cv"><i class="fa fa-eye post-meta__icon" aria-hidden="true"> </i><span>阅读量:</span><span id="busuanzi_value_page_pv"></span></span><span class="post-meta-commentcount"><span class="post-meta__separator">|</span><i class="post-meta__icon far fa-comments" aria-hidden="true"></i><span>评论数:</span><a href="/posts/52175/#post-comment"><span class="gitalk-comment-count comment-count"></span></a></span></div></div></div></div><main class="layout_post" id="content-inner"><article id="post"><div id="article-container"><h3 id="再学MIT6-824之MapReduce"><a href="#再学MIT6-824之MapReduce" class="headerlink" title="再学MIT6.824之MapReduce"></a>再学MIT6.824之MapReduce</h3><h4 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h4><p>最近闲下来的时间打算重新学一遍MIT6.824的相关课程.故有此系列博客,希望这次能坚持学完.</p>
+<h4 id="所需paper"><a href="#所需paper" class="headerlink" title="所需paper"></a>所需paper</h4><p><a href="https://chunlife.top/2020/04/18/Google-MapReduce%E4%B8%AD%E6%96%87%E7%89%88/" target="_blank" rel="noopener">Google MapReduce中文版论文</a></p>
+<h4 id="工作流"><a href="#工作流" class="headerlink" title="工作流"></a>工作流</h4><p><img src="/" class="lazyload" data-src="https://tvax4.sinaimg.cn/large/007R3gFUly1gqbb1f4qjyj30mx0cv3z5.jpg"  alt=""></p>
+<p>这里有张图我觉得很好的解释了MapReduce的主要工作流程</p>
+<p>MapReduce本身正如论文所言是一个编程模型 一个处理和生成超大数据集的算法模型的相关实现 其主要通过两个操作实现 <code>Map</code>和<code>Reduce</code></p>
+<p>其中 MapReduce的工作流程为</p>
+<ol>
+<li>将输入文件分成M个小文件(每个文件大小在16-64M),在集群中启动MapReduce实例,其中一个Master和多个可用的Worker.</li>
+<li>由Master分配任务,将Map任务分配给可用的Worker</li>
+<li>Map Worker读取文件,执行用户自定义的map函数,输出key/value对,缓存在内存中</li>
+<li>内存中的k v 对通过<code>partitioning function()</code>例如hash(key) mod R 分为R个regions,然后写入磁盘.完成之后.把这些文件的地址回传给Master,然后Master把这些位置传给Reduce Worker.</li>
+<li>Reduce Worker 收到数据存储位置信息后,使用RPC从MapWorker所在的磁盘读取这些数据,根据key进行排序,并将同一key的所有数据分组聚合在一起—-&gt;==因为太多不同的key值会映射到相同的Reduce任务上,因此必须进行排序,如果中间数据太大而无法在内存中进行排序,那么就要在外部进行排序==</li>
+<li>Reduce Worker 将分组后的值传给用户自定义的reduce函数,输出追加到所属分区的输出分区文件中</li>
+<li>当多有的map任务和reduce任务都完成后,Master向用户发送程序返回结果</li>
+</ol>
+<h5 id="实例"><a href="#实例" class="headerlink" title="实例:"></a>实例:</h5><p>词频统计: map 函数可以将单个句子的每个单词统计输出&lt;word,count&gt;,然后reduce 函数同一组的所有计数依次相加,得到&lt;word,total count&gt;</p>
+<p>paper:</p>
+<p>例如，计算一个大的文档集合中每个单词出现的次数，下面是伪代码段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"> map(String key, String value):</span><br><span class="line"></span><br><span class="line"> &#x2F;&#x2F; key: document name </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;value: document contents for each word w in value: EmitIntermediate(w, “1″); </span><br><span class="line">reduce(String key, Iterator values): &#x2F;&#x2F; key: a word &#x2F;&#x2F; values: a list of counts int result &#x3D; 0; </span><br><span class="line"></span><br><span class="line">for each v in values: result +&#x3D; ParseInt(v); </span><br><span class="line"></span><br><span class="line">Emit(AsString(result));</span><br></pre></td></tr></table></figure>
+
+<p>Map函数输出文档中的每个词、以及这个词的出现次数(在这个简单的例子里就是1)。Reduce函数把Map 函数产生的每一个特定的词的计数累加起来。 另外，用户编写代码，使用输入和输出文件的名字、可选的调节参数来完成一个符合MapReduce模型规 范的对象，然后调用MapReduce函数，并把这个规范对象传递给它。用户的代码和MapReduce库链接在 一起(用C++实现)。附录A包含了这个实例的全部程序代码。</p>
+<h6 id="更多的例子-paper2-3"><a href="#更多的例子-paper2-3" class="headerlink" title="更多的例子:(paper2-3)"></a>更多的例子:(paper2-3)</h6><ul>
+<li>这里还有一些有趣的简单例子，可以很容易的使用MapReduce模型来表示： 分布式的Grep：Map函数输出匹配某个模式的一行，Reduce函数是一个恒等函数，即把中间数据 复制到输出。</li>
+<li>计算URL访问频率：Map函数处理日志中web页面请求的记录，然后输出(URL,1)。Reduce函数把 相同URL的value值都累加起来，产生(URL,记录总数)结果。 </li>
+<li>倒转网络链接图：Map函数在源页面（source）中搜索所有的链接目标（target）并输出为 (target,source)。Reduce函数把给定链接目标（target）的链接组合成一个列表，输出 (target,list(source))。 </li>
+<li>每个主机的检索词向量：检索词向量用一个(词,频率)列表来概述出现在文档或文档集中的最重要的 一些词。Map函数为每一个输入文档输出(主机名,检索词向量)，其中主机名来自文档的URL。 Reduce函数接收给定主机的所有文档的检索词向量，并把这些检索词向量加在一起，丢弃掉低频的 检索词，输出一个最终的(主机名,检索词向量)。</li>
+<li>倒排索引：Map函数分析每个文档输出一个(词,文档号)的列表，Reduce函数的输入是一个给定词的 所有（词，文档号），排序所有的文档号，输出(词,list（文档号）)。所有的输出集合形成一个简单 的倒排索引，它以一种简单的算法跟踪词在文档中的位置。</li>
+<li>分布式排序：Map函数从每个记录提取key，输出(key,record)。Reduce函数不改变任何的值。这 个运算依赖分区机制(在4.1描述)和排序属性(在4.2描述)。</li>
+</ul>
+<h4 id="容错性"><a href="#容错性" class="headerlink" title="容错性:"></a>容错性:</h4><ul>
+<li>Worker故障:Master周期性的ping每个worker,如果指定时间内没回应就是宕了.将这个Worker标记为失效,分配给这个Worker的任务将重新分配给其他的Worker.</li>
+<li>Master故障:终止整个MapReduce运算,重新开始执行,一般比较少见.</li>
+</ul>
+<p>其实分布式系统设计的容错性都大同小异…</p>
+<h4 id="性能"><a href="#性能" class="headerlink" title="性能"></a><strong>性能</strong></h4><p>具体性能相关的内容请看 原paper 5 这一节这里只摘录两个例子</p>
+<h5 id="网络带宽匮乏"><a href="#网络带宽匮乏" class="headerlink" title="网络带宽匮乏"></a><strong>网络带宽匮乏</strong></h5><p>在撰写该 paper 时，网络带宽是一个相当匮乏的资源。Master 在调度 Map 任务时会考虑输入文件的位置信息，尽量将一个 Map 任务调度在包含相关输入数据拷贝的机器上执行；如果找不到，Master 将尝试在保存输入数据拷贝的附近的机器上执行 Map 任务。</p>
+<p>需要注意的是，新的讲座视频提到，<strong>随着后来 Google 的基础设施的扩展和升级，他们对这种存储位置优化的依赖程度降低了</strong>。</p>
+<p>原文:</p>
+<p>在我们的计算运行环境中，网络带宽是一个相当匮乏的资源。我们通过尽量把输入数据(由GFS管理)存储 在集群中机器的本地磁盘上来节省网络带宽。GFS把每个文件按64MB一个Block分隔，每个Block保存在 多台机器上，环境中就存放了多份拷贝(一般是3个拷贝)。MapReduce的master在调度Map任务时会考 虑输入文件的位置信息，尽量将一个Map任务调度在包含相关输入数据拷贝的机器上执行；如果上述努力 失败了，master将尝试在保存有输入数据拷贝的机器附近的机器上执行Map任务(例如，分配到一个和包 含输入数据的机器在一个switch里的worker机器上执行)。当在一个足够大的cluster集群上运行大型 MapReduce操作的时候，大部分的输入数据都能从本地机器读取，因此消耗非常少的网络带宽。</p>
+<h5 id="“落伍者-Stragglers-”"><a href="#“落伍者-Stragglers-”" class="headerlink" title="“落伍者(Stragglers)”"></a><strong>“落伍者(Stragglers)”</strong></h5><p>影响 MapReduce 执行时间的另一个因素是“落伍者”：一台机器花了很长的时间才完成最后几个 Map 或 Reduce 任务(<em>例如：有台机器硬盘出了问题</em>)，导致总的 MapReduce 执行时间超过预期。</p>
+<p>通过备用任务(backup tasks)来处理：当 MapReduce 操作快完成的时候，Master 调度备用任务进程来执行剩下的、处于处理中的任务。无论是最初的进程还是备用任务进程任务完成了任务，都将该任务标记为已完成。</p>
+<p>原文的解决方法:</p>
+<p>我们有一个通用的机制来减少“落伍者”出现的情况。当一个MapReduce操作接近完成的时候，master调 度备用（backup）任务进程来执行剩下的、处于处理中状态（in-progress）的任务。无论是最初的执行 进程、还是备用（backup）任务进程完成了任务，我们都把这个任务标记成为已经完成。我们调优了这 个机制，通常只会占用比正常操作多几个百分点的计算资源。我们发现采用这样的机制对于减少超大 MapReduce操作的总处理时间效果显著。例如，在5.3节描述的排序任务，在关闭掉备用任务的情况下要 多花44%的时间完成排序任务。</p>
+<h4 id="一些拓展性的技巧"><a href="#一些拓展性的技巧" class="headerlink" title="一些拓展性的技巧"></a>一些拓展性的技巧</h4><p>见原文第四标题中</p>
+<p>一些小小的例子:</p>
+<h5 id="跳过损坏的记录"><a href="#跳过损坏的记录" class="headerlink" title="跳过损坏的记录:"></a>跳过损坏的记录:</h5><p>用户程序中的bug导致Map或者Reduce函数在处理某些记录的时候crash.通常会修复bug再执行MapReduce,但是找出bug并修复它往往不是一件容易的事情(bug有可能在第三方库)</p>
+<p>所以与其因为少数的坏记录而导致整个执行失败,不如有一个机制可以让损坏的记录被跳过.这在某些情况下是可以接受的,例如在对一个大型的数据集进行统计分析时.</p>
+<p>Worker可以记录处理最后一条记录的序号发送给Master,当Master看到在处理某条记录失败不止一次时,标记这条记录需要被跳过,下次执行时就跳过这条记录.</p>
+<h5 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h5><p>MapReduce库使用计数器统计不同事件发生次数。比如，用户可能想统计已经处理了多少个单词、已经 索引的多少篇German文档等等。 为了使用这个特性，用户在程序中创建一个命名的计数器对象，在Map和Reduce函数中相应的增加计数 器的值。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Counter* uppercase;</span><br><span class="line"></span><br><span class="line">uppercase &#x3D; GetCounter(“uppercase”); </span><br><span class="line">map(String name, String contents): for each word w in contents: if (IsCapitalized(w)): uppercase-&gt;Increment(); </span><br><span class="line"></span><br><span class="line">EmitIntermediate(w, “1″);</span><br></pre></td></tr></table></figure>
+
+<p>这些计数器的值周期性的从各个单独的worker机器上传递给master（附加在ping的应答包中传递）。 master把执行成功的Map和Reduce任务的计数器值进行累计，当MapReduce操作完成之后，返回给用 户代码。 计数器当前的值也会显示在master的状态页面上，这样用户就可以看到当前计算的进度。当累加计数器的 值的时候，master要检查重复运行的Map或者Reduce任务，避免重复累加（之前提到的备用任务和失效 后重新执行任务这两种情况会导致相同的任务被多次执行）。 有些计数器的值是由MapReduce库自动维持的，比如已经处理的输入的key/value pair的数量、输出的 key/value pair的数量等等。 计数器机制对于MapReduce操作的完整性检查非常有用。比如，在某些MapReduce操作中，用户需要确 保输出的key value pair精确的等于输入的key value pair，或者处理的German文档数量在处理的整个 文档数量中属于合理范围。</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">liqiqiorz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yangxiangrui.site/posts/52175/">https://yangxiangrui.site/posts/52175/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yangxiangrui.site" target="_blank">Blog-YXR</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MIT6-824-%E5%88%86%E5%B8%83%E5%BC%8F/">-MIT6.824 -分布式</a></div><div class="post_share"><div class="social-share" data-image="https://tva1.sinaimg.cn/large/007R3gFUly1gprmr726jtj30jd0p0q7c.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"/><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-button button--primary button--animated"> <i class="fa fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/wechat.jpg" alt="微信"/><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/alipay.jpg" alt="支付寶"/><div class="post-qr-code__desc">支付寶</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="next-post pull-full"><a href="/posts/29406/"><img class="next_cover lazyload" data-src="https://tva1.sinaimg.cn/large/007R3gFUly1gprmr726jtj30jd0p0q7c.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">最近</div></div></a></div></nav><hr><div id="post-comment"><div class="comment_headling"><i class="fa fa-comments fa-fw" aria-hidden="true"></i><span> 评论</span></div><div id="gitalk-container"></div><script>var gitalk = new Gitalk({
+  clientID: 'aa96f76a6fd594e936d2',
+  clientSecret: '023b7d75786d811c2b9299565633507f8b0a49d2',
+  repo: 'liqiqi.github.io',
+  owner: 'baijianruoliorz',
+  admin: ['baijianruoliorz'],
+  id: md5(decodeURI(location.pathname)),
+  language: 'zh-CN',
+  perPage: 10,
+  distractionFreeMode: false,
+  pagerDirection: 'last',
+  createIssueManually: false,
+  updateCountCallback: commentCount
+})
+gitalk.render('gitalk-container')
+
+function commentCount(n){
+  try {
+    document.getElementsByClassName('gitalk-comment-count')[0].innerHTML= n
+  } catch (e) {
+    return false
+  }
+}</script></div></article></main><footer id="footer" style="background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-imgbed/2aa8cacf-b998-49b6-85be-d3e6609092f5.png)" data-type="photo"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021  <i id="heartbeat" class="fa fas fa-heartbeat"></i> liqiqiorz</div><div class="framework-info"><span>驱动 </span><a href="https://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 </span><a href="https://github.com/jerryc127/hexo-theme-butterfly" target="_blank" rel="noopener"><span>Butterfly</span></a></div></div><head><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"><meta name="generator" content="Hexo 4.2.0"></head></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><i class="fa fa-book" id="readmode" title="阅读模式"></i><i class="fa fa-plus" id="font_plus" title="放大字体"></i><i class="fa fa-minus" id="font_minus" title="缩小字体"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="简繁转换" target="_self">繁</a><i class="darkmode far fa-moon" id="darkmode" title="夜间模式"></i></div><div id="rightside-config-show"><div id="rightside_config" title="设置"><i class="fa fa-cog" aria-hidden="true"></i></div><a id="to_comment" href="#post-comment" title="直达评论"><i class="scroll_to_comment fa fa-comments">  </i></a><i class="fa fa-list-ul close" id="mobile-toc-button" title="目录" aria-hidden="true"></i><i class="fa fa-arrow-up" id="go-up" title="回到顶部" aria-hidden="true"></i></div></section><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a href="https://github.com/wzpan/hexo-generator-search" target="_blank" rel="noopener" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fa fa-times"></i></span></div><div class="search-mask"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script id="canvas_nest" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="/js/third-party/canvas-nest.js"></script><script src="/js/third-party/activate-power-mode.js"></script><script>POWERMODE.colorful = false;
+POWERMODE.shake = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@latest/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lazysizes@latest/lazysizes.min.js" async=""></script><script src="/js/third-party/ClickShowText.js"></script><script src="/js/search/local-search.js"></script><script src="/js/calendar.js"></script><script src="/js/languages.js"></script><script>var endLoading = function () {
+  document.body.style.overflow = 'auto';
+  document.getElementById('loading-box').classList.add("loaded")
+}
+window.addEventListener('load',endLoading)</script><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

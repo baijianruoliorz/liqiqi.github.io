@@ -1088,7 +1088,7 @@
   </entry>
   <entry>
     <title>MIT6.824(MapReduce)</title>
-    <url>/posts/29406/</url>
+    <url>/posts/52175/</url>
     <content><![CDATA[<h3 id="再学MIT6-824之MapReduce"><a href="#再学MIT6-824之MapReduce" class="headerlink" title="再学MIT6.824之MapReduce"></a>再学MIT6.824之MapReduce</h3><h4 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h4><p>最近闲下来的时间打算重新学一遍MIT6.824的相关课程.故有此系列博客,希望这次能坚持学完.</p>
 <h4 id="所需paper"><a href="#所需paper" class="headerlink" title="所需paper"></a>所需paper</h4><p><a href="https://chunlife.top/2020/04/18/Google-MapReduce%E4%B8%AD%E6%96%87%E7%89%88/" target="_blank" rel="noopener">Google MapReduce中文版论文</a></p>
 <h4 id="工作流"><a href="#工作流" class="headerlink" title="工作流"></a>工作流</h4><p><img src="/" class="lazyload" data-src="https://tvax4.sinaimg.cn/large/007R3gFUly1gqbb1f4qjyj30mx0cv3z5.jpg"  alt=""></p>

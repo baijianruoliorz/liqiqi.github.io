@@ -1149,4 +1149,84 @@
         <tag>-MIT6.824 -分布式</tag>
       </tags>
   </entry>
+  <entry>
+    <title>MIT6.824(GFS)</title>
+    <url>/posts/37548/</url>
+    <content><![CDATA[<p>MIT6.824(GFS)</p>
+<h3 id="The-Google-File-System"><a href="#The-Google-File-System" class="headerlink" title="The Google File System"></a>The Google File System</h3><p>关于GFS 这里有一张图可以清晰概括它的一个工作流程.</p>
+<p><img src="/" class="lazyload" data-src="https://tva1.sinaimg.cn/large/007R3gFUly1gqci58e1opj30mw0da0u0.jpg"  alt="GFS"></p>
+<p>由上图可知GFS主要包括 一个master和多个chunk server  然后会有多个client对其进行交互.</p>
+<h4 id="主要的架构特性"><a href="#主要的架构特性" class="headerlink" title="主要的架构特性:"></a>主要的架构特性:</h4><ul>
+<li>chunk :存储在GFS中的文件分为多个chunk,chunk大小为64M 每个chunk在创建时master会分配一个不可变并且全局唯一的64位标识符.在默认情况下,一个chunk有三个副本,分别在不同的chunkserver上.</li>
+<li>master:master是维护文件系统的metadata,它知道文件被分割为哪些chunk,以及这些chunk的存储位置,同时它还负责chunk的迁移,重新平衡和垃圾回收,此外,master通过心跳与chunkserver进行通信,向其传递相应的指令并且收集状态.</li>
+<li>client:首先向master询问文件metadata,然后根据metadata中的位置去对应相应的chunkserver获取数据.</li>
+<li>chunkserver:存储chunk,client和chunkserver不会缓存chunk数据,防止数据出现不一致的情况.</li>
+</ul>
+<p>架构:</p>
+<p>一个GFS集群包含有一个单独的Master节点.多台chunk服务器,并且同时被多个客户端访问,所有的这些机器通常都是普通的Linux机器,运行着用户级别的进程(user-level).我们可以很容易的把chunk服务器和客户端都放在同一台机器上,前提是机器资源允许,并且我们能够接受不可靠的应用程序代码带来的稳定性降低的风险.</p>
+<p>以下是paper中的图片               <strong>GFS Architecture</strong></p>
+<p><img src="/" class="lazyload" data-src="https://tva2.sinaimg.cn/large/007R3gFUly1gqciy30lqaj30k008rt9d.jpg"  alt=""></p>
+<h5 id="读"><a href="#读" class="headerlink" title="读"></a>读</h5><ul>
+<li><p>client将文件名+offset转为文件名+chunk index,向master发起请求.</p>
+</li>
+<li><p>master在内存中的metadata查询对应的chunk所在的<code>chunk handle</code>+<code>chunk locations</code>并返回给client.</p>
+</li>
+<li><p>client将master返回给它的信息缓存起来,用文件名+chunk index作为key;</p>
+</li>
+<li><p>client会选择网络上最近的chunk server通信 并且通过<code>chunk+handle</code> + <code>chunk locations</code> 来读取数据.</p>
+</li>
+</ul>
+<h5 id="租约和变更顺序"><a href="#租约和变更顺序" class="headerlink" title="租约和变更顺序"></a>租约和变更顺序</h5><p>变更是一个会改变Chunk内容或者元数据的操作,比如写入操作或者记录追加操作.变更操作会在Chunk的所有副本上执行.我们使用租约机制来保持多个副本间变更顺序的一致性.Master节点为Chunk的一个副本简历一个租约,我们吧这个副本叫做主Chunk.主Chunk对Chunk的所有更改操作进行序列化.所有的副本都遵从这个序列进行修改操作.因此,修改操作全局的顺序首先由master节点选择的租约的顺序决定,然后由租约中主Chunk分配的序列号决定.</p>
+<p>租约:如果每次写文件都请求master,那么master会成为性能瓶颈,master找到拥有该chunk的chunkserver,并给其中一个chunkserver授予租约,拥有组约的chunkserver 成为<code>Primary</code>.其他叫做Secondary.</p>
+<p>master会增加版本号,并将版本号写入磁盘,然后master会向Primary和Secondary副本对应的服务器发送消息并告诉它们,谁是Primary,谁是Secondary,最新的版本号是什么</p>
+<p>在租约有效期内,对该chunk的写操作都由Primary负责</p>
+<p>租约的有效期一般为60秒,租约到期后master可以自由的授予租约.</p>
+<p>master可能会在租约到期前撤销租约</p>
+<p>在写chunk时,Primary也可以延长租约有效期,直至整个写完chunk;</p>
+<h5 id="写"><a href="#写" class="headerlink" title="写"></a>写</h5><p><img src="/" class="lazyload" data-src="https://tvax3.sinaimg.cn/large/007R3gFUly1gqdeafe4xnj30cz0aq3yl.jpg"  alt=""></p>
+<p>paper如下描写到:</p>
+<p>1.Master节点将主Chunk的标识符以及其它副本（又称为secondary副本、二级副本）的位置返回给 客户机。客户机缓存这些数据以便后续的操作。只有在主Chunk不可用，或者主Chunk回复信息表 明它已不再持有租约的时候，客户机才需要重新跟Master节点联系。 2. 客户机把数据推送到所有的副本上。客户机可以以任意的顺序推送数据。Chunk服务器接收到数据 并保存在它的内部LRU缓存中，一直到数据被使用或者过期交换出去。由于数据流的网络传输负载非 常高，通过分离数据流和控制流，我们可以基于网络拓扑情况对数据流进行规划，提高系统性能，而 不用去理会哪个Chunk服务器保存了主Chunk。3.2章节会进一步讨论这点。 3. 当所有的副本都确认接收到了数据，客户机发送写请求到主Chunk服务器。这个请求标识了早前推 送到所有副本的数据。主Chunk为接收到的所有操作分配连续的序列号，这些操作可能来自不同的 客户机，序列号保证了操作顺序执行。它以序列号的顺序把操作应用到它自己的本地状态中（alex 注：也就是在本地执行这些操作，这句话按字面翻译有点费解，也许应该翻译为“它顺序执行这些操 作，并更新自己的状态”）。 4. 5. 主Chunk把写请求传递到所有的二级副本。每个二级副本依照主Chunk分配的序列号以相同的顺序 执行这些操作。 6. 所有的二级副本回复主Chunk，它们已经完成了操作。 主Chunk服务器（alex注：即主Chunk所在的Chunk服务器）回复客户机。任何副本产生的任何错 误都会返回给客户机。在出现错误的情况下，写入操作可能在主Chunk和一些二级副本执行成 功。（如果操作在主Chunk上失败了，操作就不会被分配序列号，也不会被传递。）客户端的请求 被确认为失败，被修改的region处于不一致的状态。我们的客户机代码通过重复执行失败的操作来 处理这样的错误。在从头开始重复执行之前，客户机会先从步骤（3）到步骤（7）做几次尝试</p>
+<p>简要概括这七步就是:</p>
+<ul>
+<li>client向master询问Primary和Secondary.如果没有chunkserver持有租约,master选择一个授予租约.</li>
+<li>master返回primary和seco的信息,client缓存这些信息,只有当Primary不可达或者租约过期才再次联系master</li>
+<li>client将追加的记录发送到每一个chunkserver(不仅仅是Primary) chunkserver先将数据写到LRU缓存中</li>
+<li>一旦client确认每个chunkserver都收到数据,client向primary发送写请求,primary可能会收到多个连续的写请求,会先将这些操作的顺序写回本地</li>
+<li>Primary做完写请求后,将写请求和顺序转发给所有的secondary,让他们以同样的顺序写数据</li>
+<li>Secondary完成后应答Primary</li>
+<li>Primary应答client成功或者失败,如果出现失败,client会重试,但在重试整个写之前,会先重复步骤(3)(7)</li>
+</ul>
+<h5 id="数据流-原paper3-2节"><a href="#数据流-原paper3-2节" class="headerlink" title="数据流  (原paper3.2节)"></a>数据流  (原paper3.2节)</h5><p>为了提高网络效率，我们采取了把数据流和控制流分开的措施。在控制流从客户机到主Chunk、然后再到 所有二级副本的同时，数据以管道的方式，顺序的沿着一个精心选择的Chunk服务器链推送。我们的目标 是充分利用每台机器的带宽，避免网络瓶颈和高延时的连接，最小化推送所有数据的延时。 为了充分利用每台机器的带宽，数据沿着一个Chunk服务器链顺序的推送，而不是以其它拓扑形式分散推 送（例如，树型拓扑结构）。线性推送模式下，每台机器所有的出口带宽都用于以最快的速度传输数据， 而不是在多个接受者之间分配带宽。 为了尽可能的避免出现网络瓶颈和高延迟的链接（eg，inter-switch最有可能出现类似问题），每台机器 都尽量的在网络拓扑中选择一台还没有接收到数据的、离自己最近的机器作为目标推送数据。假设客户机 把数据从Chunk服务器S1推送到S4。它把数据推送到最近的Chunk服务器S1。S1把数据推送到S2，因 为S2和S4中最接近的机器是S2。同样的，S2把数据传递给S3和S4之间更近的机器，依次类推推送下 去。我们的网络拓扑非常简单，通过IP地址就可以计算出节点的“距离”。 最后，我们利用基于TCP连接的、管道式数据推送方式来最小化延迟。Chunk服务器接收到数据后，马上 开始向前推送。管道方式的数据推送对我们帮助很大，因为我们采用全双工的交换网络。接收到数据后立 刻向前推送不会降低接收的速度。在没有网络拥塞的情况下，传送B字节的数据到R个副本的理想时间是 B/T+RL ，T是网络的吞吐量，L是在两台机器数据传输的延迟。通常情况下，我们的网络连接速度是 100Mbps（T），L将远小于1ms。因此，1MB的数据在理想情况下80ms左右就能分发出去。</p>
+<h5 id="快照"><a href="#快照" class="headerlink" title="快照"></a>快照</h5><p>GFS通过snapshot来创建一个文件或者目录树的备份,它可以用于备份文件或者创建checkpoint(用于恢复).GFS使用写时复制来写快照.</p>
+<p>当master收到snapshot操作请求后</p>
+<ul>
+<li>撤掉即将做快照的chunk的租约,准备snapshot(此时暂停所有的写操作)</li>
+<li>master将操作记录写入磁盘</li>
+<li>master将源文件和目录树的metadata进行复制,新创建的快照文件指向与源文件相同的chunk.</li>
+</ul>
+<h5 id="容错和诊断"><a href="#容错和诊断" class="headerlink" title="容错和诊断"></a>容错和诊断</h5><p>容错措施:快速恢复和复制</p>
+<p>快恢复:master和chunkserver都设计成几秒内恢复状态和重启</p>
+<p>chunk副本:如前面提到的,chunk复制到多台机器上</p>
+<p>master副本:master也会被复制来保证可用性,称为shadow-master;</p>
+<h5 id="数据完整性"><a href="#数据完整性" class="headerlink" title="数据完整性"></a>数据完整性</h5><p>paper:</p>
+<p>每个Chunk服务器都使用Checksum来检查保存的数据是否损坏。考虑到一个GFS集群通常都有好几百台 机器、几千块硬盘，磁盘损坏导致数据在读写过程中损坏或者丢失是非常常见的（第7节讲了一个原 因）。我们可以通过别的Chunk副本来解决数据损坏问题，但是跨越Chunk服务器比较副本来检查数据是 否损坏很不实际。另外，GFS允许有歧义的副本存在：GFS修改操作的语义，特别是早先讨论过的原子纪 录追加的操作，并不保证副本完全相同(alex注：副本不是byte-wise完全一致的)。因此，每个Chunk服 务器必须独立维护Checksum来校验自己的副本的完整性。</p>
+<p>每个chunk以64kb的块进行划分,每一个块对应一个32位的checksum,存到chunkserver的内存中,通过记录用户数据来持久化存贮checksum.对于读操作,在返回给client之前,chunkserver会校验读取块的checksum.</p>
+<h3 id="END"><a href="#END" class="headerlink" title="END"></a>END</h3><p>这里用一张知乎@多颗糖 的图进行一个GFS的演化史,事实上,GFS被创造出的5-10年内发挥了巨大作用并且为后来的分布式文件读写存储系统树立了一个典范作用,但是它的后来者也同样发展迅猛.这也是算时代的交接吧~</p>
+<p><img src="/" class="lazyload" data-src="https://tvax2.sinaimg.cn/large/007R3gFUly1gqdfx930duj30lx0eigmk.jpg"  alt=""></p>
+<p>同样的,由于GFS只有一个master节点,会带来以下问题:</p>
+<ul>
+<li>随着GFS的应用越来越多,文件也越来越多,最后master会耗尽内存来存储metadata </li>
+<li>可以通过增加内存来解决这个问题,但毕竟一台计算机的内存终究是有限的.</li>
+<li>master节点要承载数千个client的请求,master节点的CPU每秒只能处理数百个请求,尤其是还要将部分数据写入磁盘  client的数量会超过单个master的能力</li>
+<li>弱一致性会导致应用程序很难处理GFS</li>
+<li>master 的故障切换不是自动的，需要人工干预来处理已经永久故障的 master 节点，并更换新的服务器，这需要几十分钟甚至更长的时间来处理。对于某些应用程序来说，这个时间太长了.</li>
+</ul>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>-MIT6.824 -分布式</tag>
+      </tags>
+  </entry>
 </search>
